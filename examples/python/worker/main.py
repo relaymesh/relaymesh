@@ -2,6 +2,7 @@ import os
 import signal
 import threading
 from typing import Any, cast
+from urllib.parse import quote
 
 import relaymesh_githook as githook_sdk
 from relaymesh_githook import (
@@ -112,6 +113,12 @@ def repository_from_event(evt):
     return str(owner).strip(), str(name).strip()
 
 
+def first_line(s):
+    s = str(s).strip()
+    idx = s.find("\n")
+    return s[:idx] if idx >= 0 else s
+
+
 def handle(ctx, evt):
     provider_name = (evt.provider or "").strip().lower()
     print(
@@ -128,22 +135,17 @@ def handle(ctx, evt):
             print("repository info missing in payload; skipping github read")
             return
         try:
-            repository = gh.request_json("GET", f"/repos/{owner}/{repo}")
-            if isinstance(repository, dict):
-                full_name = repository.get("full_name")
-                private = repository.get("private")
-                default_branch = repository.get("default_branch")
-            else:
-                full_name = None
-                private = None
-                default_branch = None
-            print(
-                f"github read ok full_name={full_name} "
-                f"private={private} "
-                f"default_branch={default_branch}"
-            )
+            commits = gh.request_json("GET", f"/repos/{owner}/{repo}/commits?per_page=5")
+            if not isinstance(commits, list):
+                commits = []
+            print(f"github commits count={len(commits)}")
+            for i, c in enumerate(commits):
+                sha = str(c.get("sha", ""))[:7] if isinstance(c, dict) else ""
+                commit_obj = c.get("commit", {}) if isinstance(c, dict) else {}
+                msg = first_line(commit_obj.get("message", "") if isinstance(commit_obj, dict) else "")
+                print(f"  commit[{i + 1}] sha={sha} message={msg}")
         except Exception as err:
-            print(f"github read failed owner={owner} repo={repo} err={err}")
+            print(f"github list commits failed owner={owner} repo={repo} err={err}")
         return
 
     if provider_name == "gitlab":
@@ -151,12 +153,22 @@ def handle(ctx, evt):
         if not gl:
             print("gitlab client not available (installation may not be configured)")
             return
+        owner, repo = repository_from_event(evt)
+        if not owner or not repo:
+            print("repository info missing in payload; skipping gitlab read")
+            return
         try:
-            user = gl.request_json("GET", "/user")
-            username = user.get("username") if isinstance(user, dict) else None
-            print(f"gitlab read ok username={username}")
+            project = quote(f"{owner}/{repo}", safe="")
+            commits = gl.request_json("GET", f"/projects/{project}/repository/commits?per_page=5")
+            if not isinstance(commits, list):
+                commits = []
+            print(f"gitlab commits count={len(commits)}")
+            for i, c in enumerate(commits):
+                sha = str(c.get("short_id", "")) if isinstance(c, dict) else ""
+                msg = first_line(c.get("title", "") if isinstance(c, dict) else "")
+                print(f"  commit[{i + 1}] sha={sha} message={msg}")
         except Exception as err:
-            print(f"gitlab read failed err={err}")
+            print(f"gitlab list commits failed err={err}")
         return
 
     if provider_name == "bitbucket":
@@ -164,12 +176,22 @@ def handle(ctx, evt):
         if not bb:
             print("bitbucket client not available (installation may not be configured)")
             return
+        owner, repo = repository_from_event(evt)
+        if not owner or not repo:
+            print("repository info missing in payload; skipping bitbucket read")
+            return
         try:
-            user = bb.request_json("GET", "/user")
-            username = user.get("username") if isinstance(user, dict) else None
-            print(f"bitbucket read ok username={username}")
+            result = bb.request_json("GET", f"/repositories/{owner}/{repo}/commits?pagelen=5")
+            values = result.get("values", []) if isinstance(result, dict) else []
+            if not isinstance(values, list):
+                values = []
+            print(f"bitbucket commits count={len(values)}")
+            for i, c in enumerate(values):
+                sha = str(c.get("hash", ""))[:7] if isinstance(c, dict) else ""
+                msg = first_line(c.get("message", "") if isinstance(c, dict) else "")
+                print(f"  commit[{i + 1}] sha={sha} message={msg}")
         except Exception as err:
-            print(f"bitbucket read failed err={err}")
+            print(f"bitbucket list commits failed err={err}")
         return
 
     print(f"unsupported provider={provider_name}; skipping scm call")

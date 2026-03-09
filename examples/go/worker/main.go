@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +11,9 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/google/go-github/v57/github"
+	"github.com/ktrysmt/go-bitbucket"
+	"github.com/xanzy/go-gitlab"
 	worker "github.com/relaymesh/githook/sdk/go/worker"
 )
 
@@ -84,28 +88,68 @@ func main() {
 				log.Printf("repository info missing in payload; skipping github read")
 				return nil
 			}
-			repository, _, err := ghClient.Repositories.Get(ctx, owner, repo)
+			ghCommits, _, err := ghClient.Repositories.ListCommits(ctx, owner, repo, &github.CommitsListOptions{
+				ListOptions: github.ListOptions{PerPage: 5},
+			})
 			if err != nil {
-				log.Printf("github read failed owner=%s repo=%s err=%v", owner, repo, err)
+				log.Printf("github list commits failed owner=%s repo=%s err=%v", owner, repo, err)
 				return nil
 			}
-			log.Printf("github read ok full_name=%s private=%t default_branch=%s", repository.GetFullName(), repository.GetPrivate(), repository.GetDefaultBranch())
+			log.Printf("github commits count=%d", len(ghCommits))
+			for i, c := range ghCommits {
+				sha := c.GetSHA()
+				if len(sha) > 7 {
+					sha = sha[:7]
+				}
+				msg := firstLine(c.Commit.GetMessage())
+				log.Printf("  commit[%d] sha=%s message=%s", i+1, sha, msg)
+			}
 		case "gitlab":
-			if _, ok := worker.GitLabClient(evt); !ok {
+			glClient, ok := worker.GitLabClient(evt)
+			if !ok {
 				log.Printf("gitlab client not available (installation may not be configured)")
 				return nil
 			}
-			log.Printf("gitlab client resolved and ready")
+			owner, repo := repositoryFromEvent(evt)
+			if owner == "" || repo == "" {
+				log.Printf("repository info missing in payload; skipping gitlab read")
+				return nil
+			}
+			glCommits, _, err := glClient.Commits.ListCommits(fmt.Sprintf("%s/%s", owner, repo), &gitlab.ListCommitsOptions{
+				ListOptions: gitlab.ListOptions{PerPage: 5},
+			})
+			if err != nil {
+				log.Printf("gitlab list commits failed project=%s/%s err=%v", owner, repo, err)
+				return nil
+			}
+			log.Printf("gitlab commits count=%d", len(glCommits))
+			for i, c := range glCommits {
+				log.Printf("  commit[%d] sha=%s message=%s", i+1, c.ShortID, firstLine(c.Title))
+			}
 		case "bitbucket":
-			if _, ok := worker.BitbucketClient(evt); !ok {
+			bbClient, ok := worker.BitbucketClient(evt)
+			if !ok {
 				log.Printf("bitbucket client not available (installation may not be configured)")
 				return nil
 			}
-			log.Printf("bitbucket client resolved and ready")
+			owner, repo := repositoryFromEvent(evt)
+			if owner == "" || repo == "" {
+				log.Printf("repository info missing in payload; skipping bitbucket read")
+				return nil
+			}
+			result, err := bbClient.Repositories.Commits.GetCommits(&bitbucket.CommitsOptions{
+				Owner:    owner,
+				RepoSlug: repo,
+			})
+			if err != nil {
+				log.Printf("bitbucket list commits failed owner=%s repo=%s err=%v", owner, repo, err)
+				return nil
+			}
+			logBitbucketCommits(result, 5)
 		default:
 			log.Printf("unsupported provider=%s; skipping scm call", provider)
 		}
-
+		
 		return nil
 	})
 
@@ -158,4 +202,41 @@ func repositoryFromEvent(evt *worker.Event) (string, string) {
 	owner, _ := ownerMap["login"].(string)
 
 	return strings.TrimSpace(owner), strings.TrimSpace(name)
+}
+
+func firstLine(s string) string {
+	s = strings.TrimSpace(s)
+	if i := strings.IndexByte(s, '\n'); i >= 0 {
+		return s[:i]
+	}
+	return s
+}
+
+func logBitbucketCommits(result interface{}, limit int) {
+	data, ok := result.(map[string]interface{})
+	if !ok {
+		log.Printf("bitbucket commits: unexpected response type")
+		return
+	}
+	values, ok := data["values"].([]interface{})
+	if !ok {
+		log.Printf("bitbucket commits: no values in response")
+		return
+	}
+	if len(values) > limit {
+		values = values[:limit]
+	}
+	log.Printf("bitbucket commits count=%d", len(values))
+	for i, v := range values {
+		cm, ok := v.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		hash, _ := cm["hash"].(string)
+		if len(hash) > 7 {
+			hash = hash[:7]
+		}
+		msg := firstLine(fmt.Sprintf("%v", cm["message"]))
+		log.Printf("  commit[%d] sha=%s message=%s", i+1, hash, msg)
+	}
 }

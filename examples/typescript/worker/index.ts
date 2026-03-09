@@ -87,12 +87,15 @@ async function main() {
       }
 
       try {
-        const repository = await gh.requestJSON<Record<string, unknown>>("GET", `/repos/${owner}/${repo}`);
-        console.log(
-          `github read ok full_name=${repository.full_name} private=${repository.private} default_branch=${repository.default_branch}`,
-        );
+        const commits = await gh.requestJSON<Record<string, unknown>[]>("GET", `/repos/${owner}/${repo}/commits?per_page=5`);
+        console.log(`github commits count=${commits.length}`);
+        for (let i = 0; i < commits.length; i++) {
+          const sha = String(commits[i].sha ?? "").slice(0, 7);
+          const msg = firstLine(String((commits[i].commit as Record<string, unknown>)?.message ?? ""));
+          console.log(`  commit[${i + 1}] sha=${sha} message=${msg}`);
+        }
       } catch (err) {
-        console.log(`github read failed owner=${owner} repo=${repo} err=${String(err)}`);
+        console.log(`github list commits failed owner=${owner} repo=${repo} err=${String(err)}`);
       }
       return;
     }
@@ -103,11 +106,24 @@ async function main() {
         console.log("gitlab client not available (installation may not be configured)");
         return;
       }
+
+      const { owner: glOwner, repo: glRepo } = repositoryFromEvent(evt);
+      if (!glOwner || !glRepo) {
+        console.log("repository info missing in payload; skipping gitlab read");
+        return;
+      }
+
       try {
-        const user = await gl.requestJSON<Record<string, unknown>>("GET", "/user");
-        console.log(`gitlab read ok username=${user.username ?? ""}`);
+        const project = encodeURIComponent(`${glOwner}/${glRepo}`);
+        const commits = await gl.requestJSON<Record<string, unknown>[]>("GET", `/projects/${project}/repository/commits?per_page=5`);
+        console.log(`gitlab commits count=${commits.length}`);
+        for (let i = 0; i < commits.length; i++) {
+          const sha = String(commits[i].short_id ?? "");
+          const msg = firstLine(String(commits[i].title ?? ""));
+          console.log(`  commit[${i + 1}] sha=${sha} message=${msg}`);
+        }
       } catch (err) {
-        console.log(`gitlab read failed err=${String(err)}`);
+        console.log(`gitlab list commits failed err=${String(err)}`);
       }
       return;
     }
@@ -118,11 +134,24 @@ async function main() {
         console.log("bitbucket client not available (installation may not be configured)");
         return;
       }
+
+      const { owner: bbOwner, repo: bbRepo } = repositoryFromEvent(evt);
+      if (!bbOwner || !bbRepo) {
+        console.log("repository info missing in payload; skipping bitbucket read");
+        return;
+      }
+
       try {
-        const user = await bb.requestJSON<Record<string, unknown>>("GET", "/user");
-        console.log(`bitbucket read ok username=${user.username ?? ""}`);
+        const result = await bb.requestJSON<Record<string, unknown>>("GET", `/repositories/${bbOwner}/${bbRepo}/commits?pagelen=5`);
+        const values = Array.isArray(result.values) ? result.values as Record<string, unknown>[] : [];
+        console.log(`bitbucket commits count=${values.length}`);
+        for (let i = 0; i < values.length; i++) {
+          const sha = String(values[i].hash ?? "").slice(0, 7);
+          const msg = firstLine(String(values[i].message ?? ""));
+          console.log(`  commit[${i + 1}] sha=${sha} message=${msg}`);
+        }
       } catch (err) {
-        console.log(`bitbucket read failed err=${String(err)}`);
+        console.log(`bitbucket list commits failed err=${String(err)}`);
       }
       return;
     }
@@ -131,6 +160,11 @@ async function main() {
   });
 
   await wk.Run();
+}
+
+function firstLine(s: string): string {
+  const idx = s.indexOf("\n");
+  return idx >= 0 ? s.slice(0, idx).trim() : s.trim();
 }
 
 function intFromEnv(raw: string | undefined, fallback: number): number {
