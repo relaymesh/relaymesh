@@ -246,6 +246,17 @@ func namespaceStoreAvailable(store storage.NamespaceStore) bool {
 	}
 }
 
+func asyncNamespaceSync(ctx context.Context, logger *log.Logger, provider string, syncFn func(context.Context) error) {
+	go func() {
+		if logger == nil {
+			logger = log.Default()
+		}
+		if err := syncFn(ctx); err != nil {
+			logger.Printf("%s namespaces sync failed: %v", provider, err)
+		}
+	}()
+}
+
 func logUpsertAttempt(logger *log.Logger, record storage.InstallRecord, accessToken string) {
 	if logger == nil {
 		return

@@ -51,9 +51,6 @@ func (h *Handler) handleGitHubApp(w http.ResponseWriter, r *http.Request, logger
 	if err != nil {
 		logger.Printf("github account resolve failed: %v", err)
 	}
-	if err := SyncGitHubNamespaces(storeCtx, h.NamespaceStore, cfg, installationID, accountID, instanceKey); err != nil {
-		logger.Printf("github namespaces sync failed: %v", err)
-	}
 
 	record := storage.InstallRecord{
 		TenantID:            stateValue.TenantID,
@@ -88,6 +85,13 @@ func (h *Handler) handleGitHubApp(w http.ResponseWriter, r *http.Request, logger
 			warning = "install record not saved"
 		}
 		dedupeInstallations(storeCtx, h.Store, "github", accountID, instanceKey, record.InstallationID)
+	}
+
+	if namespaceStoreAvailable(h.NamespaceStore) {
+		syncCtx := storage.WithTenant(context.Background(), stateValue.TenantID)
+		asyncNamespaceSync(syncCtx, logger, "github", func(ctx context.Context) error {
+			return SyncGitHubNamespaces(ctx, h.NamespaceStore, cfg, installationID, accountID, instanceKey)
+		})
 	}
 
 	params := map[string]string{

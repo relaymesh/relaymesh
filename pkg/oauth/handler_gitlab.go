@@ -73,9 +73,10 @@ func (h *Handler) handleGitLab(w http.ResponseWriter, r *http.Request, logger *l
 	}
 
 	if namespaceStoreAvailable(h.NamespaceStore) {
-		if err := SyncGitLabNamespaces(storeCtx, h.NamespaceStore, cfg, token.AccessToken, accountID, record.InstallationID, instanceKey); err != nil {
-			logger.Printf("gitlab namespaces sync failed: %v", err)
-		}
+		syncCtx := storage.WithTenant(context.Background(), stateValue.TenantID)
+		asyncNamespaceSync(syncCtx, logger, "gitlab", func(ctx context.Context) error {
+			return SyncGitLabNamespaces(ctx, h.NamespaceStore, cfg, token.AccessToken, accountID, record.InstallationID, instanceKey)
+		})
 	}
 
 	params := map[string]string{

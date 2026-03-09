@@ -72,9 +72,10 @@ func (h *Handler) handleBitbucket(w http.ResponseWriter, r *http.Request, logger
 	}
 
 	if namespaceStoreAvailable(h.NamespaceStore) {
-		if err := SyncBitbucketNamespaces(storeCtx, h.NamespaceStore, cfg, token.AccessToken, accountID, record.InstallationID, instanceKey); err != nil {
-			logger.Printf("bitbucket namespaces sync failed: %v", err)
-		}
+		syncCtx := storage.WithTenant(context.Background(), stateValue.TenantID)
+		asyncNamespaceSync(syncCtx, logger, "bitbucket", func(ctx context.Context) error {
+			return SyncBitbucketNamespaces(ctx, h.NamespaceStore, cfg, token.AccessToken, accountID, record.InstallationID, instanceKey)
+		})
 	}
 
 	params := map[string]string{
