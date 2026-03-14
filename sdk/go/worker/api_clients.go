@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 const (
@@ -29,10 +29,10 @@ func resolveEndpoint(explicit string) string {
 	if trimmed := strings.TrimSpace(explicit); trimmed != "" {
 		return strings.TrimRight(trimmed, "/")
 	}
-	if endpoint := envEndpoint("GITHOOK_ENDPOINT"); endpoint != "" {
+	if endpoint := envEndpoint("RELAYMESH_ENDPOINT"); endpoint != "" {
 		return endpoint
 	}
-	if endpoint := envEndpoint("GITHOOK_API_BASE_URL"); endpoint != "" {
+	if endpoint := envEndpoint("RELAYMESH_API_BASE_URL"); endpoint != "" {
 		return endpoint
 	}
 	return defaultAPIEndpoint
@@ -46,11 +46,11 @@ func envEndpoint(key string) string {
 }
 
 func apiKeyFromEnv() string {
-	return strings.TrimSpace(os.Getenv("GITHOOK_API_KEY"))
+	return strings.TrimSpace(os.Getenv("RELAYMESH_API_KEY"))
 }
 
 func envTenantID() string {
-	return strings.TrimSpace(os.Getenv("GITHOOK_TENANT_ID"))
+	return strings.TrimSpace(os.Getenv("RELAYMESH_TENANT_ID"))
 }
 
 func (w *Worker) apiBaseURL() string {

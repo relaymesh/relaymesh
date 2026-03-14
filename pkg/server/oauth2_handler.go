@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	oidchelper "github.com/relaymesh/githook/pkg/auth/oidc"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	oidchelper "github.com/relaymesh/relaymesh/pkg/auth/oidc"
 
 	"golang.org/x/oauth2"
 )
@@ -221,12 +221,12 @@ func codeChallenge(verifier string) string {
 }
 
 func tokenCachePath() string {
-	if path := strings.TrimSpace(os.Getenv("github.com/relaymesh/githook_TOKEN_CACHE")); path != "" {
+	if path := strings.TrimSpace(os.Getenv("github.com/relaymesh/relaymesh_TOKEN_CACHE")); path != "" {
 		return path
 	}
 	base, err := os.UserCacheDir()
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(base, "github.com/relaymesh/githook", "token.json")
+	return filepath.Join(base, "github.com/relaymesh/relaymesh", "token.json")
 }

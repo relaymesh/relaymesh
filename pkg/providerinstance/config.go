@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // RecordsFromConfig converts provider config into instance records.

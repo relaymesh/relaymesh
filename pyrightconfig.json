@@ -1,0 +1,17 @@
+{
+  "pythonVersion": "3.9",
+  "pythonPlatform": "All",
+  "typeCheckingMode": "basic",
+  "stubPath": "typings",
+  "extraPaths": ["sdk/python/worker"],
+  "executionEnvironments": [
+    {
+      "root": "sdk/python/worker",
+      "extraPaths": ["."]
+    },
+    {
+      "root": "examples/python/worker",
+      "extraPaths": ["../../sdk/python/worker"]
+    }
+  ]
+}

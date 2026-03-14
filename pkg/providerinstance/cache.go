@@ -5,9 +5,9 @@ import (
 	"errors"
 	"log"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	"github.com/relaymesh/githook/pkg/cache"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/cache"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // Cache maintains per-tenant provider instance configs keyed by provider+key.

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/relaymesh/githook/cmd"
+	"github.com/relaymesh/relaymesh/cmd"
 )
 
 func main() {

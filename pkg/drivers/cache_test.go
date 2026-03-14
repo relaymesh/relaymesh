@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/relaymesh/githook/pkg/core"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 type stubDriverStore struct {

@@ -1,8 +1,8 @@
-# githook ⚡
+# relaymesh ⚡
 
 > **⚠️ Warning:** Research and development only. Not production-ready.
 
-githook is a multi-tenant webhook router for GitHub, GitLab, and Bitbucket. It receives webhook events, evaluates rules, and publishes matching events to AMQP, NATS, or Kafka. Workers subscribe to those topics and can request SCM clients from the server.
+relaymesh is a multi-tenant webhook router for GitHub, GitLab, and Bitbucket. It receives webhook events, evaluates rules, and publishes matching events to AMQP, NATS, or Kafka. Workers subscribe to those topics and can request SCM clients from the server.
 
 ## Core concepts
 
@@ -152,7 +152,7 @@ import {
   GitHubClient,
   GitLabClient,
   BitbucketClient,
-} from "@relaymesh/githook";
+} from "@relaymesh/sdk";
 
 const worker = New(
   WithEndpoint("http://localhost:8080"),
@@ -181,7 +181,7 @@ await worker.Run();
 Python:
 
 ```python
-from relaymesh_githook import (
+from relaymesh import (
     New,
     WithEndpoint,
     WithClientProvider,

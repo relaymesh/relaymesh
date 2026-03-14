@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	"github.com/relaymesh/githook/pkg/providerinstance"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/providerinstance"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // HandlerOptions holds dependencies used to build OAuth handlers.

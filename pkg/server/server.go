@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/core"
 )
 
 // RunConfig loads config from a path and starts the server with signal handling.

@@ -6,7 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/relaymesh/githook/pkg/auth/oidc"
+	"github.com/relaymesh/relaymesh/pkg/auth/oidc"
 )
 
 func TestTenantIDFromRequest(t *testing.T) {

@@ -10,12 +10,12 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
-	"github.com/relaymesh/githook/pkg/oauth"
-	"github.com/relaymesh/githook/pkg/providerinstance"
-	ghprovider "github.com/relaymesh/githook/pkg/providers/github"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
+	"github.com/relaymesh/relaymesh/pkg/oauth"
+	"github.com/relaymesh/relaymesh/pkg/providerinstance"
+	ghprovider "github.com/relaymesh/relaymesh/pkg/providers/github"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // SCMService returns per-installation SCM client credentials.

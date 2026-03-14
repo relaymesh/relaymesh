@@ -1,0 +1,7 @@
+{
+  "pythonVersion": "3.9",
+  "pythonPlatform": "All",
+  "typeCheckingMode": "basic",
+  "extraPaths": ["."],
+  "stubPath": "../../../typings"
+}

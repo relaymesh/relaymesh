@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/githook/cloud
+name: buf.build/relaymesh/cloud
 lint:
   use:
     - STANDARD

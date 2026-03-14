@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	gh "github.com/google/go-github/v57/github"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func TestVerifyGitHubSHA1(t *testing.T) {

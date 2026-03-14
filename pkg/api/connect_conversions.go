@@ -5,9 +5,9 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/relaymesh/githook/pkg/core"
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func toProtoInstallations(records []storage.InstallRecord) []*cloudv1.InstallRecord {

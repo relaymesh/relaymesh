@@ -12,15 +12,21 @@ class RetryDecision:
 
 
 class RetryPolicy:
-    def on_error(self, ctx: WorkerContext, evt: Optional[Event], err: Exception) -> RetryDecision:
+    def on_error(
+        self, ctx: WorkerContext, evt: Optional[Event], err: Exception
+    ) -> RetryDecision:
         return RetryDecision()
 
-    def OnError(self, ctx: WorkerContext, evt: Optional[Event], err: Exception) -> RetryDecision:
+    def OnError(
+        self, ctx: WorkerContext, evt: Optional[Event], err: Exception
+    ) -> RetryDecision:
         return self.on_error(ctx, evt, err)
 
 
 class NoRetry(RetryPolicy):
-    def on_error(self, ctx: WorkerContext, evt: Optional[Event], err: Exception) -> RetryDecision:
+    def on_error(
+        self, ctx: WorkerContext, evt: Optional[Event], err: Exception
+    ) -> RetryDecision:
         return RetryDecision(retry=False, nack=True)
 
 

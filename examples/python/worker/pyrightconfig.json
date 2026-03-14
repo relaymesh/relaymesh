@@ -1,0 +1,6 @@
+{
+  "pythonVersion": "3.9",
+  "pythonPlatform": "All",
+  "typeCheckingMode": "basic",
+  "extraPaths": ["../../../sdk/python/worker"]
+}

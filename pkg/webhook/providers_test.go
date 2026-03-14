@@ -3,7 +3,7 @@ package webhook
 import (
 	"testing"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 func TestWebhookProviderMetadata(t *testing.T) {

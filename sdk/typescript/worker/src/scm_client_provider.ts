@@ -152,11 +152,11 @@ function resolveEndpoint(explicit?: string): string {
   if (trimmed) {
     return trimmed.replace(/\/+$/, "");
   }
-  const envEndpoint = envValue("GITHOOK_ENDPOINT");
+  const envEndpoint = envValue("RELAYMESH_ENDPOINT");
   if (envEndpoint) {
     return envEndpoint;
   }
-  const envBase = envValue("GITHOOK_API_BASE_URL");
+  const envBase = envValue("RELAYMESH_API_BASE_URL");
   if (envBase) {
     return envBase;
   }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 type webhookProviderStub struct {

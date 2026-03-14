@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/relaymesh/githook/pkg/providers/github"
+	"github.com/relaymesh/relaymesh/pkg/providers/github"
 )
 
 // AuthContext contains the resolved authentication data for a webhook event.

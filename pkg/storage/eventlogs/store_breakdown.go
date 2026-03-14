@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // GetEventLogBreakdown returns grouped aggregates and an optional next page token.

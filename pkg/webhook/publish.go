@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/core"
-	"github.com/relaymesh/githook/pkg/drivers"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/drivers"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func publishMatchesWithFallback(ctx context.Context, event core.Event, matches []core.RuleMatch, logs []storage.EventLogRecord, dynamic *drivers.DynamicPublisherCache, fallback core.Publisher, logger *log.Logger, statusUpdater func(string, string, string), payloadUpdater func(string, []byte)) {

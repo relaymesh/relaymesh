@@ -7,7 +7,12 @@ from .api import APIClientOptions, SCMClientsClient, resolve_endpoint
 from .client import ClientProvider
 from .metadata import METADATA_KEY_INSTALLATION_ID, METADATA_KEY_PROVIDER_INSTANCE_KEY
 from .oauth2 import OAuth2Config, resolve_oauth2_config
-from .scm_clients import BitbucketClientFromEvent, GitHubClientFromEvent, GitLabClientFromEvent, new_provider_client
+from .scm_clients import (
+    BitbucketClientFromEvent,
+    GitHubClientFromEvent,
+    GitLabClientFromEvent,
+    new_provider_client,
+)
 
 DEFAULT_SCM_CACHE_SIZE = 10
 DEFAULT_SCM_CACHE_SKEW_SECONDS = 30
@@ -31,7 +36,9 @@ class RemoteSCMClientProvider(ClientProvider):
         self.oauth2_config = resolve_oauth2_config(options.oauth2_config)
         self.cache = _SCMClientCache(max(1, options.cache_size))
         self.cache_skew_seconds = max(0, int(options.cache_skew_seconds))
-        self.timeout = options.timeout if options.timeout and options.timeout > 0 else 10.0
+        self.timeout = (
+            options.timeout if options.timeout and options.timeout > 0 else 10.0
+        )
 
     def bind_api_client(self, opts: APIClientOptions) -> None:
         if opts.base_url:
@@ -55,10 +62,14 @@ class RemoteSCMClientProvider(ClientProvider):
         provider = (evt.provider or "").strip()
         if not provider:
             raise ValueError("provider is required")
-        installation_id = (evt.metadata or {}).get(METADATA_KEY_INSTALLATION_ID, "").strip()
+        installation_id = (
+            (evt.metadata or {}).get(METADATA_KEY_INSTALLATION_ID, "").strip()
+        )
         if not installation_id:
             raise ValueError("installation_id missing from metadata")
-        instance_key = (evt.metadata or {}).get(METADATA_KEY_PROVIDER_INSTANCE_KEY, "").strip()
+        instance_key = (
+            (evt.metadata or {}).get(METADATA_KEY_PROVIDER_INSTANCE_KEY, "").strip()
+        )
         cache_key = "|".join([provider, installation_id, instance_key])
         cached = self.cache.get(cache_key, self.cache_skew_seconds)
         if cached is not None:
@@ -69,7 +80,9 @@ class RemoteSCMClientProvider(ClientProvider):
             self.cache.add(cache_key, client.client, client.expires_at)
         return client.client
 
-    def _fetch_client(self, ctx, provider: str, installation_id: str, instance_key: str) -> "_SCMClientResult":
+    def _fetch_client(
+        self, ctx, provider: str, installation_id: str, instance_key: str
+    ) -> "_SCMClientResult":
         api_opts = APIClientOptions(
             base_url=self.endpoint,
             api_key=self.api_key,
@@ -77,14 +90,20 @@ class RemoteSCMClientProvider(ClientProvider):
             tenant_id=getattr(ctx, "tenant_id", ""),
             timeout=self.timeout,
         )
-        record = SCMClientsClient(api_opts).get_scm_client(provider, installation_id, instance_key, ctx)
+        record = SCMClientsClient(api_opts).get_scm_client(
+            provider, installation_id, instance_key, ctx
+        )
         if not record.access_token:
             raise ValueError("scm access token missing")
-        created = new_provider_client(record.provider, record.access_token, record.api_base_url)
+        created = new_provider_client(
+            record.provider, record.access_token, record.api_base_url
+        )
         return _SCMClientResult(client=created, expires_at=record.expires_at)
 
 
-def NewRemoteSCMClientProvider(opts: Optional[RemoteSCMClientProviderOptions] = None) -> RemoteSCMClientProvider:
+def NewRemoteSCMClientProvider(
+    opts: Optional[RemoteSCMClientProviderOptions] = None,
+) -> RemoteSCMClientProvider:
     return RemoteSCMClientProvider(opts)
 
 
@@ -126,7 +145,9 @@ class _SCMClientCache:
             self._bump(key)
             return entry.client
 
-    def add(self, key: str, client: object, expires_at: Optional[datetime.datetime]) -> None:
+    def add(
+        self, key: str, client: object, expires_at: Optional[datetime.datetime]
+    ) -> None:
         if not key or client is None:
             return
         with self.lock:

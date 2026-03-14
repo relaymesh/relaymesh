@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/relaymesh/githook/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/core"
 )
 
 func (h *GitHubHandler) matchRules(ctx context.Context, event core.Event, tenantID string, logger *log.Logger) []core.MatchedRule {

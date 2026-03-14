@@ -7,8 +7,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/storage"
-	"github.com/relaymesh/githook/sdk/go/worker"
+	"github.com/relaymesh/relaymesh/pkg/storage"
+	"github.com/relaymesh/relaymesh/sdk/go/worker"
 )
 
 // validateRuleSubscriber builds a subscriber for the stored driver configuration so the

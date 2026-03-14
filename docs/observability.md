@@ -1,6 +1,6 @@
 # Observability
 
-Githook exposes lightweight observability signals that work with minimal setup.
+relaymesh exposes lightweight observability signals that work with minimal setup.
 
 ## Request IDs
 

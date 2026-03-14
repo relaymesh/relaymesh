@@ -1,11 +1,11 @@
-# Relaymesh Githook Python Worker SDK
+# relaymesh Python Worker SDK
 
-The Python worker SDK mirrors the Go/TypeScript worker interfaces and connects to the Githook control plane for rules, drivers, event logs, and SCM credentials.
+The Python worker SDK mirrors the Go/TypeScript worker interfaces and connects to the relaymesh control plane for rules, drivers, event logs, and SCM credentials.
 
 ## Install
 
 ```bash
-pip install relaymesh-githook
+pip install relaymesh
 ```
 
 No additional packages are required.
@@ -16,10 +16,10 @@ No additional packages are required.
 import signal
 import threading
 
-from relaymesh_githook import (
-    Listener,
+from relaymesh.listener import Listener
+from relaymesh.scm_client_provider import NewRemoteSCMClientProvider
+from relaymesh.worker import (
     New,
-    NewRemoteSCMClientProvider,
     WithClientProvider,
     WithConcurrency,
     WithEndpoint,
@@ -67,7 +67,7 @@ def handle_with_ctx(ctx, evt):
 ## Using SCM Clients (GitHub/GitLab/Bitbucket)
 
 ```python
-from relaymesh_githook import BitbucketClient, GitHubClient, GitLabClient
+from relaymesh.scm_client_provider import BitbucketClient, GitHubClient, GitLabClient
 
 def handler(ctx, evt):
     provider = (evt.provider or "").lower()
@@ -97,7 +97,8 @@ def handler(ctx, evt):
 Use `mode="client_credentials"` for worker OAuth2 token flow.
 
 ```python
-from relaymesh_githook import OAuth2Config, WithOAuth2Config
+from relaymesh.oauth2 import OAuth2Config
+from relaymesh.worker import WithOAuth2Config
 
 wk = New(
     WithOAuth2Config(

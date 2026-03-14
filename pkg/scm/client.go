@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	"github.com/relaymesh/githook/pkg/providers/bitbucket"
-	"github.com/relaymesh/githook/pkg/providers/github"
-	"github.com/relaymesh/githook/pkg/providers/gitlab"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/providers/bitbucket"
+	"github.com/relaymesh/relaymesh/pkg/providers/github"
+	"github.com/relaymesh/relaymesh/pkg/providers/gitlab"
 )
 
 // Client is a provider-specific API client instance.

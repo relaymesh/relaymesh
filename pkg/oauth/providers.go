@@ -3,7 +3,7 @@ package oauth
 import (
 	"net/http"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 // DefaultRegistry registers the built-in OAuth providers.

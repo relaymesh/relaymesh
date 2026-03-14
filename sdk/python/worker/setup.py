@@ -1,7 +1,6 @@
+import importlib
 import os
 from pathlib import Path
-
-from setuptools import find_packages, setup
 
 
 def read_version() -> str:
@@ -16,16 +15,20 @@ def read_readme() -> str:
     return path.read_text(encoding="utf-8")
 
 
+setuptools = importlib.import_module("setuptools")
+find_packages = setuptools.find_packages
+setup = setuptools.setup
+
 setup(
-    name="relaymesh-githook",
+    name="relaymesh",
     version=read_version(),
-    description="Relaymesh Githook worker SDK",
+    description="Relaymesh worker SDK",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
     python_requires=">=3.9",
-    packages=find_packages(where=".", include=["relaymesh_githook*", "cloud*", "buf*"]),
+    packages=find_packages(where=".", include=["relaymesh*", "cloud*", "buf*"]),
     install_requires=[
-        "protobuf>=4.21.0",
+        "protobuf>=6.33.5",
         "relaybus-amqp",
         "relaybus-kafka",
         "relaybus-nats",

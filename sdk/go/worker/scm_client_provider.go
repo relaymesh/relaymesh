@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 const (

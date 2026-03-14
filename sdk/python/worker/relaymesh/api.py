@@ -79,7 +79,9 @@ class RulesClient:
         trimmed = (rule_id or "").strip()
         if not trimmed:
             raise ValueError("rule id is required")
-        payload = _post_json(self.opts, "/cloud.v1.RulesService/GetRule", {"id": trimmed}, ctx)
+        payload = _post_json(
+            self.opts, "/cloud.v1.RulesService/GetRule", {"id": trimmed}, ctx
+        )
         record = _read_object(payload, "rule")
         if not record:
             raise ValueError(f"rule not found: {trimmed}")
@@ -108,7 +110,9 @@ class DriversClient:
             for record in raw_drivers
         ]
 
-    def get_driver_by_id(self, driver_id: str, ctx: Optional[WorkerContext] = None) -> Optional[DriverRecord]:
+    def get_driver_by_id(
+        self, driver_id: str, ctx: Optional[WorkerContext] = None
+    ) -> Optional[DriverRecord]:
         trimmed = (driver_id or "").strip()
         if not trimmed:
             raise ValueError("driver id is required")
@@ -242,7 +246,9 @@ def _normalize_installation(record: Dict[str, Any]) -> InstallationRecord:
         account_id=_read_string(record, "account_id", "accountId"),
         account_name=_read_string(record, "account_name", "accountName"),
         installation_id=_read_string(record, "installation_id", "installationId"),
-        provider_instance_key=_read_string(record, "provider_instance_key", "providerInstanceKey"),
+        provider_instance_key=_read_string(
+            record, "provider_instance_key", "providerInstanceKey"
+        ),
         enterprise_id=_read_string(record, "enterprise_id", "enterpriseId"),
         enterprise_slug=_read_string(record, "enterprise_slug", "enterpriseSlug"),
         enterprise_name=_read_string(record, "enterprise_name", "enterpriseName"),
@@ -257,7 +263,9 @@ def _normalize_scm_client(record: Dict[str, Any]) -> SCMClientRecord:
         provider=_read_string(record, "provider"),
         api_base_url=_read_string(record, "api_base_url", "apiBaseUrl"),
         access_token=_read_string(record, "access_token", "accessToken"),
-        provider_instance_key=_read_string(record, "provider_instance_key", "providerInstanceKey"),
+        provider_instance_key=_read_string(
+            record, "provider_instance_key", "providerInstanceKey"
+        ),
         expires_at=_parse_datetime(record, "expires_at", "expiresAt"),
     )
 
@@ -302,7 +310,9 @@ def _post_json(
     return {}
 
 
-def _apply_auth_headers(headers: Dict[str, str], opts: APIClientOptions, ctx: Optional[WorkerContext]) -> None:
+def _apply_auth_headers(
+    headers: Dict[str, str], opts: APIClientOptions, ctx: Optional[WorkerContext]
+) -> None:
     api_key = resolve_api_key(opts.api_key)
     if api_key:
         headers["X-API-Key"] = api_key
@@ -328,7 +338,9 @@ def _parse_datetime(record: Dict[str, Any], *keys: str) -> Optional[datetime.dat
         if isinstance(value, dict) and "seconds" in value:
             try:
                 seconds = int(value.get("seconds"))
-                return datetime.datetime.fromtimestamp(seconds, tz=datetime.timezone.utc)
+                return datetime.datetime.fromtimestamp(
+                    seconds, tz=datetime.timezone.utc
+                )
             except Exception:
                 continue
     return None

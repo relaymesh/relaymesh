@@ -3,7 +3,7 @@ package eventlogs
 import (
 	"context"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 
 	"gorm.io/gorm"
 )

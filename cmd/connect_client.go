@@ -10,9 +10,9 @@ import (
 	"connectrpc.com/connect"
 	"connectrpc.com/validate"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	"github.com/relaymesh/githook/pkg/auth/oidc"
-	"github.com/relaymesh/githook/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth/oidc"
+	"github.com/relaymesh/relaymesh/pkg/core"
 )
 
 func connectClientOptions() ([]connect.ClientOption, error) {
@@ -25,7 +25,7 @@ func connectClientOptions() ([]connect.ClientOption, error) {
 		return opts, err
 	}
 	apiBaseURL = resolveEndpoint(cfg)
-	if apiKey := strings.TrimSpace(os.Getenv("GITHOOK_API_KEY")); apiKey != "" {
+	if apiKey := strings.TrimSpace(os.Getenv("RELAYMESH_API_KEY")); apiKey != "" {
 		opts = append(opts, connect.WithInterceptors(apiKeyHeaderInterceptor(apiKey)))
 		return opts, nil
 	}
@@ -82,7 +82,7 @@ func resolveEndpoint(cfg core.AppConfig) string {
 }
 
 func cliToken(ctx context.Context, cfg core.AppConfig) (string, error) {
-	if token := strings.TrimSpace(os.Getenv("github.com/relaymesh/githook_AUTH_TOKEN")); token != "" {
+	if token := strings.TrimSpace(os.Getenv("RELAYMESH_AUTH_TOKEN")); token != "" {
 		return token, nil
 	}
 	cachePath := tokenCachePath()
@@ -94,7 +94,7 @@ func cliToken(ctx context.Context, cfg core.AppConfig) (string, error) {
 		}
 	}
 	if strings.ToLower(strings.TrimSpace(cfg.Auth.OAuth2.Mode)) == "auth_code" && cfg.Auth.OAuth2.ClientSecret == "" {
-		return "", errors.New("auth_code mode requires login; set GITHOOK_AUTH_TOKEN or store a token with githook auth store")
+		return "", errors.New("auth_code mode requires login; set RELAYMESH_AUTH_TOKEN or store a token with relaymesh auth store")
 	}
 	resp, err := oidc.ClientCredentialsToken(ctx, cfg.Auth.OAuth2)
 	if err != nil {
@@ -111,7 +111,7 @@ func cliToken(ctx context.Context, cfg core.AppConfig) (string, error) {
 }
 
 func tokenCachePath() string {
-	if path := strings.TrimSpace(os.Getenv("github.com/relaymesh/githook_TOKEN_CACHE")); path != "" {
+	if path := strings.TrimSpace(os.Getenv("RELAYMESH_TOKEN_CACHE")); path != "" {
 		return path
 	}
 	path, err := oidc.DefaultCachePath()

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func TestRuleKey(t *testing.T) {

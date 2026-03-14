@@ -1,17 +1,17 @@
 import unittest
 
-from relaymesh_githook.context import WorkerContext
-from relaymesh_githook.codec import Codec
-from relaymesh_githook.event import Event
-from relaymesh_githook.event_log_status import (
+from relaymesh.context import WorkerContext
+from relaymesh.codec import Codec
+from relaymesh.event import Event
+from relaymesh.event_log_status import (
     EVENT_LOG_STATUS_FAILED,
     EVENT_LOG_STATUS_SUCCESS,
 )
-from relaymesh_githook.listener import Listener
-from relaymesh_githook.retry import RetryPolicy
-from relaymesh_githook.retry import RetryDecision
-from relaymesh_githook.types import RelaybusMessage
-from relaymesh_githook.worker import Worker, WorkerOptions
+from relaymesh.listener import Listener
+from relaymesh.retry import RetryPolicy
+from relaymesh.retry import RetryDecision
+from relaymesh.types import RelaybusMessage
+from relaymesh.worker import Worker, WorkerOptions
 
 
 class TestCodec(Codec):
@@ -62,6 +62,15 @@ class TestListener(Listener):
         self.error_calls.append((evt, err))
 
 
+class TestWorker(Worker):
+    def __init__(self, opts, status_calls):
+        super().__init__(opts)
+        self._status_calls = status_calls
+
+    def update_event_log_status(self, ctx, log_id, status, err):
+        self._status_calls.append((log_id, status, str(err or "")))
+
+
 class WorkerHandleMessageTests(unittest.TestCase):
     def test_handle_message_success_updates_success_status(self):
         event = Event(
@@ -73,19 +82,15 @@ class WorkerHandleMessageTests(unittest.TestCase):
         )
         retry = TestRetryPolicy(RetryDecision(retry=False, nack=True))
         listener = TestListener()
-        worker = Worker(
+        status_calls = []
+        worker = TestWorker(
             WorkerOptions(
                 codec=TestCodec(event=event),
                 retry=retry,
                 listeners=[listener],
-            )
+            ),
+            status_calls,
         )
-        status_calls = []
-
-        def capture_status(ctx, log_id, status, err):
-            status_calls.append((log_id, status, str(err or "")))
-
-        worker.update_event_log_status = capture_status
         worker.topic_handlers["topic"] = lambda ctx, evt: None
 
         should_nack = worker.handle_message(
@@ -109,19 +114,15 @@ class WorkerHandleMessageTests(unittest.TestCase):
         )
         retry = TestRetryPolicy(RetryDecision(retry=False, nack=True))
         listener = TestListener()
-        worker = Worker(
+        status_calls = []
+        worker = TestWorker(
             WorkerOptions(
                 codec=TestCodec(event=event),
                 retry=retry,
                 listeners=[listener],
-            )
+            ),
+            status_calls,
         )
-        status_calls = []
-
-        def capture_status(ctx, log_id, status, err):
-            status_calls.append((log_id, status, str(err or "")))
-
-        worker.update_event_log_status = capture_status
 
         def fail_handler(ctx, evt):
             raise RuntimeError("handler failed")
@@ -149,19 +150,15 @@ class WorkerHandleMessageTests(unittest.TestCase):
     def test_handle_message_decode_error_uses_nil_event(self):
         retry = TestRetryPolicy(RetryDecision(retry=True, nack=False))
         listener = TestListener()
-        worker = Worker(
+        status_calls = []
+        worker = TestWorker(
             WorkerOptions(
                 codec=TestCodec(err=ValueError("decode failed")),
                 retry=retry,
                 listeners=[listener],
-            )
+            ),
+            status_calls,
         )
-        status_calls = []
-
-        def capture_status(ctx, log_id, status, err):
-            status_calls.append((log_id, status, str(err or "")))
-
-        worker.update_event_log_status = capture_status
 
         should_nack = worker.handle_message(
             WorkerContext(tenant_id="acme"),

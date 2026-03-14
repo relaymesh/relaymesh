@@ -30,7 +30,7 @@ checksum:
 
 brews:
   - ids: [githook]
-    homepage: "https://github.com/relaymesh/githook"
+    homepage: "https://github.com/relaymesh/relaymesh"
     description: "Webhook router + worker SDK for GitHub, GitLab, Bitbucket. Route events by rules and consume via Watermill."
     license: "MIT"
     directory: Formula

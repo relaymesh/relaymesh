@@ -8,8 +8,8 @@ import (
 	"connectrpc.com/connect"
 	"github.com/spf13/cobra"
 
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
-	cloudv1connect "github.com/relaymesh/githook/pkg/gen/cloud/v1/cloudv1connect"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
+	cloudv1connect "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1/cloudv1connect"
 )
 
 func newNamespacesCmd() *cobra.Command {

@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
 )
 
 func TestDriversClientValidation(t *testing.T) {

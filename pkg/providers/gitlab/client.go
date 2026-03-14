@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 
 	gl "github.com/xanzy/go-gitlab"
 )

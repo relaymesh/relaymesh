@@ -3,7 +3,7 @@ package worker
 import (
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 // Option is a function that configures a Worker.

@@ -10,7 +10,7 @@
     "start": "ts-node --esm index.ts"
   },
   "dependencies": {
-    "@relaymesh/githook": "file:../../../sdk/typescript/worker"
+    "@relaymesh/sdk": "file:../../../sdk/typescript/worker"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

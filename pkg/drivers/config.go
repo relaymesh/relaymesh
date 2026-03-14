@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/core"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // RecordsFromConfig converts a Relaybus config into driver records.

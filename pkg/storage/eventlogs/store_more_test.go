@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func TestEventLogsValidationAndHelpers(t *testing.T) {

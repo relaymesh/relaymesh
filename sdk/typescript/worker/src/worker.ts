@@ -737,10 +737,10 @@ export function WithValidateTopics(validate: boolean): WorkerOption {
 const defaultLogger: Logger = {
   printf(format: string, ...args: unknown[]) {
     if (args.length === 0) {
-      console.log(`githook/worker ${format}`);
+      console.log(`relaymesh/worker ${format}`);
       return;
     }
-    console.log(`githook/worker ${format}`, ...args);
+    console.log(`relaymesh/worker ${format}`, ...args);
   },
 };
 
@@ -749,11 +749,11 @@ function resolveEndpoint(explicit?: string): string {
   if (trimmed) {
     return trimmed.replace(/\/+$/, "");
   }
-  const envEndpoint = envValue("GITHOOK_ENDPOINT");
+  const envEndpoint = envValue("RELAYMESH_ENDPOINT");
   if (envEndpoint) {
     return envEndpoint;
   }
-  const envBase = envValue("GITHOOK_API_BASE_URL");
+  const envBase = envValue("RELAYMESH_API_BASE_URL");
   if (envBase) {
     return envBase;
   }
@@ -765,7 +765,7 @@ function resolveApiKey(explicit?: string): string {
   if (trimmed) {
     return trimmed;
   }
-  return envValue("GITHOOK_API_KEY");
+  return envValue("RELAYMESH_API_KEY");
 }
 
 function resolveTenantId(explicit?: string): string {
@@ -773,7 +773,7 @@ function resolveTenantId(explicit?: string): string {
   if (trimmed) {
     return trimmed;
   }
-  return envValue("GITHOOK_TENANT_ID");
+  return envValue("RELAYMESH_TENANT_ID");
 }
 
 function envValue(key: string): string {

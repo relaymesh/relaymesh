@@ -697,9 +697,9 @@ def WithValidateTopics(validate: bool) -> WorkerOption:
 class _StdLogger:
     def printf(self, fmt: str, *args: Any) -> None:
         if args:
-            print(f"githook/worker {fmt % args}")
+            print(f"relaymesh/worker {fmt % args}")
         else:
-            print(f"githook/worker {fmt}")
+            print(f"relaymesh/worker {fmt}")
 
     def Printf(self, fmt: str, *args: Any) -> None:
         self.printf(fmt, *args)
@@ -713,9 +713,9 @@ def _log_printf(logger: Logger, fmt: str, *args: Any) -> None:
         logger.printf(fmt, *args)
         return
     if args:
-        print(f"githook/worker {fmt % args}")
+        print(f"relaymesh/worker {fmt % args}")
     else:
-        print(f"githook/worker {fmt}")
+        print(f"relaymesh/worker {fmt}")
 
 
 def _resolve_client_provider(

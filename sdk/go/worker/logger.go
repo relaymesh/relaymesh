@@ -18,4 +18,4 @@ func (stdLogger) Printf(format string, args ...interface{}) {
 	defaultWorkerLogger.Printf(format, args...)
 }
 
-var defaultWorkerLogger = log.New(os.Stdout, "github.com/relaymesh/githook/worker ", log.LstdFlags|log.Lmicroseconds)
+var defaultWorkerLogger = log.New(os.Stdout, "github.com/relaymesh/relaymesh/worker ", log.LstdFlags|log.Lmicroseconds)

@@ -9,9 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/core"
-	"github.com/relaymesh/githook/pkg/drivers"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/drivers"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 
 	"github.com/go-playground/webhooks/v6/gitlab"
 )

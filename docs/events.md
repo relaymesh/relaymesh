@@ -1,6 +1,6 @@
 # Event Compatibility
 
-Githook preserves provider event names in `Event.Name` and sets `Event.Provider` to the source system. Rules should target payload fields, not provider-specific envelope fields.
+relaymesh preserves provider event names in `Event.Name` and sets `Event.Provider` to the source system. Rules should target payload fields, not provider-specific envelope fields.
 
 Rules evaluate a flattened view of the JSON payload, so fields like `action` and `pull_request.title` are accessible directly in expressions.
 

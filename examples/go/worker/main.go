@@ -13,8 +13,8 @@ import (
 
 	"github.com/google/go-github/v57/github"
 	"github.com/ktrysmt/go-bitbucket"
+	worker "github.com/relaymesh/relaymesh/sdk/go/worker"
 	"github.com/xanzy/go-gitlab"
-	worker "github.com/relaymesh/githook/sdk/go/worker"
 )
 
 func main() {
@@ -149,7 +149,7 @@ func main() {
 		default:
 			log.Printf("unsupported provider=%s; skipping scm call", provider)
 		}
-		
+
 		return nil
 	})
 

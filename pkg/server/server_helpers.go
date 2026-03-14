@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func resolveRuleDriverName(ctx context.Context, store storage.DriverStore, driverID string) (string, error) {

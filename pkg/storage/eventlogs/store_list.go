@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 	"gorm.io/gorm"
 )
 

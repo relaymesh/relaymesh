@@ -9,9 +9,9 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // InstallationsService implements the Connect/GRPC InstallationsService.

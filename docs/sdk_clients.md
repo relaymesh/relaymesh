@@ -49,7 +49,7 @@ import {
   GitHubClient,
   GitLabClient,
   BitbucketClient,
-} from "@relaymesh/githook";
+} from "@relaymesh/sdk";
 
 const worker = New(
   WithEndpoint("http://localhost:8080"),
@@ -82,7 +82,7 @@ If a client cannot be resolved, the helpers return `nil`/`undefined`. Treat that
 Python:
 
 ```python
-from relaymesh_githook import (
+from relaymesh import (
     New,
     WithEndpoint,
     WithClientProvider,

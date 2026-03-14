@@ -12,12 +12,12 @@ import (
 	"connectrpc.com/validate"
 	"github.com/rs/cors"
 
-	"github.com/relaymesh/githook/pkg/api"
-	oidchelper "github.com/relaymesh/githook/pkg/auth/oidc"
-	"github.com/relaymesh/githook/pkg/core"
-	cloudv1connect "github.com/relaymesh/githook/pkg/gen/cloud/v1/cloudv1connect"
-	"github.com/relaymesh/githook/pkg/oauth"
-	"github.com/relaymesh/githook/pkg/webhook"
+	"github.com/relaymesh/relaymesh/pkg/api"
+	oidchelper "github.com/relaymesh/relaymesh/pkg/auth/oidc"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	cloudv1connect "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1/cloudv1connect"
+	"github.com/relaymesh/relaymesh/pkg/oauth"
+	"github.com/relaymesh/relaymesh/pkg/webhook"
 
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"

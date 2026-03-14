@@ -1,6 +1,6 @@
 package api
 
-import "github.com/relaymesh/githook/pkg/auth"
+import "github.com/relaymesh/relaymesh/pkg/auth"
 
 func providerConfigFromAuthConfig(cfg auth.Config, provider string) auth.ProviderConfig {
 	switch auth.NormalizeProviderName(provider) {

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/relaymesh/githook/pkg/core"
-	"github.com/relaymesh/githook/pkg/storage"
-	driversstore "github.com/relaymesh/githook/pkg/storage/drivers"
-	"github.com/relaymesh/githook/pkg/storage/eventlogs"
-	"github.com/relaymesh/githook/pkg/storage/installations"
-	"github.com/relaymesh/githook/pkg/storage/namespaces"
-	providerinstancestore "github.com/relaymesh/githook/pkg/storage/provider_instances"
-	"github.com/relaymesh/githook/pkg/storage/rules"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/storage"
+	driversstore "github.com/relaymesh/relaymesh/pkg/storage/drivers"
+	"github.com/relaymesh/relaymesh/pkg/storage/eventlogs"
+	"github.com/relaymesh/relaymesh/pkg/storage/installations"
+	"github.com/relaymesh/relaymesh/pkg/storage/namespaces"
+	providerinstancestore "github.com/relaymesh/relaymesh/pkg/storage/provider_instances"
+	"github.com/relaymesh/relaymesh/pkg/storage/rules"
 )
 
 func openStores(cfg core.Config, logger *log.Logger, addCloser func(func())) (serverStores, error) {

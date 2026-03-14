@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/core"
-	driverspkg "github.com/relaymesh/githook/pkg/drivers"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	driverspkg "github.com/relaymesh/relaymesh/pkg/drivers"
 )
 
 func buildPublisher(cfg core.Config, driverCache *driverspkg.Cache) (core.Publisher, error) {

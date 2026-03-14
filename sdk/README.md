@@ -1,6 +1,6 @@
 # SDKs
 
-This directory groups language-specific SDKs that build on top of the Githooks event model and a shared, language-agnostic contract.
+This directory groups language-specific SDKs that build on top of the relaymesh event model and a shared, language-agnostic contract.
 
 - `go/`: Go worker SDK (reference implementation).
 - `typescript/worker`: TypeScript worker SDK (Relaybus JS adapters, parity with Go worker APIs).

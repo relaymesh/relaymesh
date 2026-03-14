@@ -37,16 +37,16 @@ sdk/
 │   ├── src/event.ts     # Event type
 │   ├── src/subscriber.ts
 │   ├── src/codec.ts
-│   └── package.json     # @relaymesh/githook on npm
+│   └── package.json     # @relaymesh/sdk on npm
 │
 └── python/worker/       # 17 src files — mirrors Go API
-    ├── relaymesh_githook/
+    ├── relaymesh/       # primary package name
     │   ├── __init__.py  # Exports: New, With*, HandleRule, Run
     │   ├── worker.py    # Worker class
     │   ├── event.py     # Event dataclass
     │   ├── subscriber.py
     │   └── codec.py
-    └── setup.py         # relaymesh-githook on PyPI
+└── setup.py         # relaymesh on PyPI
 ```
 
 ## WHERE TO LOOK

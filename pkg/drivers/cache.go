@@ -5,9 +5,9 @@ import (
 	"errors"
 	"log"
 
-	"github.com/relaymesh/githook/pkg/cache"
-	"github.com/relaymesh/githook/pkg/core"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/cache"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 // Cache maintains driver configs and publishers.

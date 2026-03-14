@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 type providerStoreStub struct {

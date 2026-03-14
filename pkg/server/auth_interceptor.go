@@ -9,7 +9,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	oidchelper "github.com/relaymesh/githook/pkg/auth/oidc"
+	oidchelper "github.com/relaymesh/relaymesh/pkg/auth/oidc"
 )
 
 type authContextKey struct{}

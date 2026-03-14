@@ -5604,8 +5604,8 @@ const file_cloud_v1_githooks_proto_rawDesc = "" +
 	"\x15GetEventLogTimeseries\x12&.cloud.v1.GetEventLogTimeseriesRequest\x1a'.cloud.v1.GetEventLogTimeseriesResponse\x12e\n" +
 	"\x14GetEventLogBreakdown\x12%.cloud.v1.GetEventLogBreakdownRequest\x1a&.cloud.v1.GetEventLogBreakdownResponse\x12e\n" +
 	"\x14UpdateEventLogStatus\x12%.cloud.v1.UpdateEventLogStatusRequest\x1a&.cloud.v1.UpdateEventLogStatusResponse\x12S\n" +
-	"\x0eReplayEventLog\x12\x1f.cloud.v1.ReplayEventLogRequest\x1a .cloud.v1.ReplayEventLogResponseB\x95\x01\n" +
-	"\fcom.cloud.v1B\rGithooksProtoP\x01Z5github.com/relaymesh/githook/pkg/gen/cloud/v1;cloudv1\xa2\x02\x03CXX\xaa\x02\bCloud.V1\xca\x02\bCloud\\V1\xe2\x02\x14Cloud\\V1\\GPBMetadata\xea\x02\tCloud::V1b\x06proto3"
+	"\x0eReplayEventLog\x12\x1f.cloud.v1.ReplayEventLogRequest\x1a .cloud.v1.ReplayEventLogResponseB\x97\x01\n" +
+	"\fcom.cloud.v1B\rGithooksProtoP\x01Z7github.com/relaymesh/relaymesh/pkg/gen/cloud/v1;cloudv1\xa2\x02\x03CXX\xaa\x02\bCloud.V1\xca\x02\bCloud\\V1\xe2\x02\x14Cloud\\V1\\GPBMetadata\xea\x02\tCloud::V1b\x06proto3"
 
 var (
 	file_cloud_v1_githooks_proto_rawDescOnce sync.Once

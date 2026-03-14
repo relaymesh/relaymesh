@@ -7,7 +7,7 @@ import (
 
 	"github.com/dop251/goja"
 
-	"github.com/relaymesh/githook/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/core"
 )
 
 func applyRuleTransform(event core.Event, transformJS string) (core.Event, error) {

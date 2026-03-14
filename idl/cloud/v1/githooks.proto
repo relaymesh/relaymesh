@@ -5,7 +5,7 @@ package cloud.v1;
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/relaymesh/githook/pkg/gen/cloud/v1;cloudv1";
+option go_package = "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1;cloudv1";
 
 // InstallationsService manages OAuth app installations per tenant.
 // An installation represents a GitHub App, GitLab OAuth app, or Bitbucket

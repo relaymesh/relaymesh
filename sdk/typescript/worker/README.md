@@ -8,15 +8,15 @@ Supported drivers: amqp, kafka, nats.
 ## Install
 
 ```sh
-npm install @relaymesh/githook
+npm install @relaymesh/sdk
 ```
 
 No additional packages are required.
 
-## Githook Worker Example (rule-id only)
+## relaymesh Worker Example (rule-id only)
 
 ```ts
-import * as worker from "@relaymesh/githook";
+import * as worker from "@relaymesh/sdk";
 
 async function main() {
   const wk = worker.New(
@@ -36,7 +36,7 @@ main().catch(console.error);
 ## Go-style example
 
 ```ts
-import * as worker from "@relaymesh/githook";
+import * as worker from "@relaymesh/sdk";
 
 const controller = new AbortController();
 process.on("SIGINT", () => controller.abort());
@@ -67,7 +67,7 @@ Rule handlers are the recommended way to subscribe. If you need to bind handlers
 to explicit topics or driver IDs, you can still do so.
 
 ```ts
-import * as worker from "@relaymesh/githook";
+import * as worker from "@relaymesh/sdk";
 
 async function main() {
   const subscriber = worker.buildSubscriber({

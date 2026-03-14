@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 func TestSupportsAuthCode(t *testing.T) {
@@ -31,7 +31,7 @@ func TestRandomStringAndCodeChallenge(t *testing.T) {
 }
 
 func TestTokenCachePath(t *testing.T) {
-	t.Setenv("github.com/relaymesh/githook_TOKEN_CACHE", "/tmp/token.json")
+	t.Setenv("github.com/relaymesh/relaymesh_TOKEN_CACHE", "/tmp/token.json")
 	if got := tokenCachePath(); got != "/tmp/token.json" {
 		t.Fatalf("unexpected token cache path: %q", got)
 	}

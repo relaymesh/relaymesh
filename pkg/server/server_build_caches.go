@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/relaymesh/githook/pkg/core"
-	driverspkg "github.com/relaymesh/githook/pkg/drivers"
-	"github.com/relaymesh/githook/pkg/providerinstance"
+	"github.com/relaymesh/relaymesh/pkg/core"
+	driverspkg "github.com/relaymesh/relaymesh/pkg/drivers"
+	"github.com/relaymesh/relaymesh/pkg/providerinstance"
 )
 
 func buildCaches(ctx context.Context, stores serverStores, cfg core.Config, logger *log.Logger, addCloser func(func())) (serverCaches, error) {

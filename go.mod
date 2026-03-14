@@ -1,4 +1,4 @@
-module github.com/relaymesh/githook
+module github.com/relaymesh/relaymesh
 
 go 1.24.0
 
@@ -9,6 +9,7 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/coreos/go-oidc/v3 v3.11.0
+	github.com/dop251/goja v0.0.0-20250125213203-5ef83b82af17
 	github.com/glebarez/sqlite v1.10.0
 	github.com/go-playground/webhooks/v6 v6.2.0
 	github.com/google/go-github/v57 v57.0.0
@@ -35,7 +36,6 @@ require (
 	github.com/PaesslerAG/gval v1.0.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
-	github.com/dop251/goja v0.0.0-20250125213203-5ef83b82af17 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.2 // indirect

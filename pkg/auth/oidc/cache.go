@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 type tokenCacheFile struct {
@@ -31,7 +31,7 @@ func DefaultCachePath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(base, "github.com/relaymesh/githook", "token.json"), nil
+	return filepath.Join(base, "github.com/relaymesh/relaymesh", "token.json"), nil
 }
 
 // LoadCachedToken reads a cached token if it exists and is not expired.

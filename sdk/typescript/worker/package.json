@@ -1,5 +1,5 @@
 {
-  "name": "@relaymesh/githook",
+  "name": "@relaymesh/sdk",
   "version": "0.0.17",
   "type": "module",
   "main": "./dist/index.js",

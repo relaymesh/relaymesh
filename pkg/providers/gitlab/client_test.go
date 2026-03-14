@@ -3,7 +3,7 @@ package gitlab
 import (
 	"testing"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 func TestNormalizeBaseURL(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	relaymessage "github.com/relaymesh/relaybus/sdk/core/go/message"
 	"google.golang.org/protobuf/proto"
 
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
 )
 
 // stubPublisher is a mock Publisher for testing.

@@ -10,8 +10,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 func enableProviderWebhook(ctx context.Context, provider string, cfg auth.ProviderConfig, token string, record storage.NamespaceRecord, hookURL string) error {
@@ -179,7 +179,7 @@ func ensureBitbucketWebhook(ctx context.Context, cfg auth.ProviderConfig, token,
 			return nil
 		}
 		body := map[string]interface{}{
-			"description": "github.com/relaymesh/githook",
+			"description": "github.com/relaymesh/relaymesh",
 			"url":         hookURL,
 			"active":      true,
 			"events": []string{

@@ -9,9 +9,9 @@ import (
 	"time"
 
 	gh "github.com/google/go-github/v57/github"
-	"github.com/relaymesh/githook/pkg/storage"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 
-	ghprovider "github.com/relaymesh/githook/pkg/providers/github"
+	ghprovider "github.com/relaymesh/relaymesh/pkg/providers/github"
 )
 
 func (h *GitHubHandler) resolveStateID(ctx context.Context, raw []byte) (string, string, string, string) {

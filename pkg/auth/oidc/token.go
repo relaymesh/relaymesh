@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 )
 
 type Token struct {

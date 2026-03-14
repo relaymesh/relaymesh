@@ -17,7 +17,7 @@ import (
 	natsadapter "github.com/relaymesh/relaybus/sdk/nats/go"
 	"google.golang.org/protobuf/proto"
 
-	cloudv1 "github.com/relaymesh/githook/pkg/gen/cloud/v1"
+	cloudv1 "github.com/relaymesh/relaymesh/pkg/gen/cloud/v1"
 )
 
 // Publisher defines the interface for publishing events.

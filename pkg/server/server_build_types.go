@@ -1,14 +1,14 @@
 package server
 
 import (
-	driverspkg "github.com/relaymesh/githook/pkg/drivers"
-	"github.com/relaymesh/githook/pkg/providerinstance"
-	driversstore "github.com/relaymesh/githook/pkg/storage/drivers"
-	"github.com/relaymesh/githook/pkg/storage/eventlogs"
-	"github.com/relaymesh/githook/pkg/storage/installations"
-	"github.com/relaymesh/githook/pkg/storage/namespaces"
-	providerinstancestore "github.com/relaymesh/githook/pkg/storage/provider_instances"
-	"github.com/relaymesh/githook/pkg/storage/rules"
+	driverspkg "github.com/relaymesh/relaymesh/pkg/drivers"
+	"github.com/relaymesh/relaymesh/pkg/providerinstance"
+	driversstore "github.com/relaymesh/relaymesh/pkg/storage/drivers"
+	"github.com/relaymesh/relaymesh/pkg/storage/eventlogs"
+	"github.com/relaymesh/relaymesh/pkg/storage/installations"
+	"github.com/relaymesh/relaymesh/pkg/storage/namespaces"
+	providerinstancestore "github.com/relaymesh/relaymesh/pkg/storage/provider_instances"
+	"github.com/relaymesh/relaymesh/pkg/storage/rules"
 )
 
 type serverStores struct {

@@ -12,7 +12,7 @@ import {
   GitHubClient,
   GitLabClient,
   BitbucketClient,
-} from "@relaymesh/githook";
+} from "@relaymesh/sdk";
 
 async function main() {
   const endpoint = process.env.GITHOOK_ENDPOINT ?? "https://relaymesh.vercel.app/api/connect";

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/relaymesh/githook/pkg/auth"
+	"github.com/relaymesh/relaymesh/pkg/auth"
 
 	"gopkg.in/yaml.v3"
 )

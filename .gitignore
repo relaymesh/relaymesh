@@ -16,7 +16,7 @@ test.yaml
 examples/typescript/worker/node_modules/
 sdk/typescript/worker/dist/
 sdk/typescript/worker/node_modules/
-sdk/python/worker/relaymesh_githook.*
+sdk/python/worker/relaymesh.*
 sdk/python/worker/build
 sdk/python/worker/__pycache__/
 sdk/python/worker/*.egg-info/

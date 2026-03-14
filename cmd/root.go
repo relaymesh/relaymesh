@@ -9,7 +9,7 @@ func NewRootCmd() *cobra.Command {
 	root := &cobra.Command{
 		Use:   "githook",
 		Short: "Webhook router + worker SDK for Git providers",
-		Long: "github.com/relaymesh/githooks routes GitHub/GitLab/Bitbucket webhooks to Relaybus topics and provides a worker SDK " +
+		Long: "github.com/relaymesh/relaymeshs routes GitHub/GitLab/Bitbucket webhooks to Relaybus topics and provides a worker SDK " +
 			"for processing events with provider-aware clients.",
 		Example: "  githook serve --config config.yaml\n" +
 			"  githook --endpoint http://localhost:8080 installations list --provider github\n" +

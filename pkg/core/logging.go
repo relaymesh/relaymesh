@@ -7,9 +7,9 @@ import (
 )
 
 // NewLogger creates a new logger with a standardized prefix.
-// The prefix will be "github.com/relaymesh/githook" or "github.com/relaymesh/githook/<component>" if a component name is provided.
+// The prefix will be "github.com/relaymesh/relaymesh" or "github.com/relaymesh/relaymesh/<component>" if a component name is provided.
 func NewLogger(component string) *log.Logger {
-	prefix := "github.com/relaymesh/githook"
+	prefix := "github.com/relaymesh/relaymesh"
 	if component != "" {
 		prefix = prefix + "/" + component
 	}

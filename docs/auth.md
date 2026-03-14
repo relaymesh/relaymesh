@@ -1,6 +1,6 @@
 # API Authentication (OAuth2/OIDC)
 
-Githook validates OAuth2/OIDC JWTs on all Connect RPC endpoints. Webhooks and OAuth callbacks remain public.
+relaymesh validates OAuth2/OIDC JWTs on all Connect RPC endpoints. Webhooks and OAuth callbacks remain public.
 
 ## Server configuration
 
@@ -30,7 +30,7 @@ The CLI reads `auth.oauth2` from `--config` (default: `config.yaml`) and applies
 4) The CLI sends `Authorization: Bearer <token>` for all RPC calls.
 
 The token cache lives under your OS cache directory, for example:
-`~/.cache/github.com/relaymesh/githook/token.json`.
+`~/.cache/github.com/relaymesh/relaymesh/token.json`.
 
 ## CLI config examples
 
