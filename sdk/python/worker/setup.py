@@ -7,7 +7,7 @@ def read_version() -> str:
     raw = (os.getenv("RELAYMESH_PY_VERSION") or "").strip()
     if raw.startswith("v"):
         raw = raw[1:]
-    return raw or "0.0.18"
+    return raw or "0.0.19"
 
 
 def read_readme() -> str:
