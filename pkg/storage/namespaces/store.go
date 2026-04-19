@@ -192,6 +192,9 @@ func (s *Store) ListNamespaces(ctx context.Context, filter storage.NamespaceFilt
 	if filter.FullName != "" {
 		query = query.Where("full_name = ?", filter.FullName)
 	}
+	if filter.Limit > 0 {
+		query = query.Limit(filter.Limit)
+	}
 	var data []row
 	err := query.Find(&data).Error
 	if err != nil {

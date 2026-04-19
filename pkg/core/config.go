@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 
@@ -15,14 +16,18 @@ import (
 type AppConfig struct {
 	// Server holds server-specific configuration.
 	Server struct {
-		Port           int    `yaml:"port"`
-		PublicBaseURL  string `yaml:"public_base_url"` // Deprecated: use Endpoint.
-		ReadTimeoutMS  int64  `yaml:"read_timeout_ms"`
-		WriteTimeoutMS int64  `yaml:"write_timeout_ms"`
-		IdleTimeoutMS  int64  `yaml:"idle_timeout_ms"`
-		ReadHeaderMS   int64  `yaml:"read_header_timeout_ms"`
-		MaxBodyBytes   int64  `yaml:"max_body_bytes"`
-		DebugEvents    bool   `yaml:"debug_events"`
+		Port                      int      `yaml:"port"`
+		PublicBaseURL             string   `yaml:"public_base_url"` // Deprecated: use Endpoint.
+		ReadTimeoutMS             int64    `yaml:"read_timeout_ms"`
+		WriteTimeoutMS            int64    `yaml:"write_timeout_ms"`
+		IdleTimeoutMS             int64    `yaml:"idle_timeout_ms"`
+		ReadHeaderMS              int64    `yaml:"read_header_timeout_ms"`
+		MaxBodyBytes              int64    `yaml:"max_body_bytes"`
+		DebugEvents               bool     `yaml:"debug_events"`
+		CORSAllowedOrigins        []string `yaml:"cors_allowed_origins"`
+		CORSAllowedHeaders        []string `yaml:"cors_allowed_headers"`
+		AllowTenantHeaderFallback bool     `yaml:"allow_tenant_header_fallback"`
+		MaxReplayConcurrency      int      `yaml:"max_replay_concurrency"`
 	} `yaml:"server"`
 	// Providers contains configuration for each Git provider.
 	Providers auth.Config `yaml:"providers"`
@@ -239,7 +244,36 @@ func applyDefaults(cfg *AppConfig) {
 	if cfg.Storage.ConnMaxIdleTimeMS == 0 {
 		cfg.Storage.ConnMaxIdleTimeMS = 60000
 	}
+	if len(cfg.Server.CORSAllowedOrigins) == 0 {
+		cfg.Server.CORSAllowedOrigins = defaultCORSAllowedOrigins(cfg.Endpoint)
+	}
+	if len(cfg.Server.CORSAllowedHeaders) == 0 {
+		cfg.Server.CORSAllowedHeaders = []string{
+			"Accept",
+			"Authorization",
+			"Content-Type",
+			"Connect-Protocol-Version",
+			"Connect-Timeout-Ms",
+			"X-API-Key",
+			"X-Tenant-ID",
+			"X-Githooks-Tenant-ID",
+		}
+	}
+	if cfg.Server.MaxReplayConcurrency <= 0 {
+		cfg.Server.MaxReplayConcurrency = 8
+	}
 	applyAuthDefaults(cfg)
+}
+
+func defaultCORSAllowedOrigins(endpoint string) []string {
+	parsed, err := url.Parse(strings.TrimSpace(endpoint))
+	if err == nil && parsed.Scheme != "" && parsed.Host != "" {
+		return []string{parsed.Scheme + "://" + parsed.Host}
+	}
+	return []string{
+		"http://localhost:3000",
+		"http://127.0.0.1:3000",
+	}
 }
 
 func applyAuthDefaults(cfg *AppConfig) {

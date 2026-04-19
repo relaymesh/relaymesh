@@ -9,10 +9,10 @@ import (
 	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
-func newTenantInterceptor() connect.UnaryInterceptorFunc {
+func newTenantInterceptor(allowHeaderFallback bool) connect.UnaryInterceptorFunc {
 	return func(next connect.UnaryFunc) connect.UnaryFunc {
 		return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-			tenantID := tenantIDFromRequest(ctx, req)
+			tenantID := tenantIDFromRequest(ctx, req, allowHeaderFallback)
 			if tenantID != "" {
 				ctx = storage.WithTenant(ctx, tenantID)
 			}
@@ -21,11 +21,14 @@ func newTenantInterceptor() connect.UnaryInterceptorFunc {
 	}
 }
 
-func tenantIDFromRequest(ctx context.Context, req connect.AnyRequest) string {
+func tenantIDFromRequest(ctx context.Context, req connect.AnyRequest, allowHeaderFallback bool) string {
 	if claims, ok := AuthClaimsFromContext(ctx); ok && claims != nil {
 		if trimmed := strings.TrimSpace(claims.TenantID); trimmed != "" {
 			return trimmed
 		}
+	}
+	if !allowHeaderFallback {
+		return ""
 	}
 	if req == nil {
 		return ""

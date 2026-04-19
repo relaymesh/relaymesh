@@ -1,14 +1,48 @@
 server:
   port: 8080
-endpoint: http://localhost:8080
+endpoint: https://githook.fly.dev
 storage:
   driver: postgres
-  dsn: postgresql://postgres:postgres@localhost:5432/postgres
+  dsn: ${GITHOOK_STORAGE_DSN}
   dialect: postgres
   auto_migrate: true
+  max_open_conns: 2
+  max_idle_conns: 1
+  conn_max_lifetime_ms: 300000
+  conn_max_idle_time_ms: 60000
+auth:
+  oauth2:
+    enabled: true
+    issuer: https://dev-dh3dmjr12gnq1hlw.jp.auth0.com/
+    audience: https://githook.fly.dev
+    mode: auth_code
+    client_id: ${GITHOOK_OAUTH2_CLIENT_ID}
+    client_secret: ${GITHOOK_OAUTH2_CLIENT_SECRET}
+    scopes: githook.read
+redirect_base_url: https://app.example.com/oauth/complete
+
+
+
+# server:
+#   port: 8080
+#   write_timeout_ms: 30000
+# endpoint: https://githook.fly.dev
+# storage:
+#   driver: postgres
+#   dsn: ${GITHOOK_STORAGE_DSN}
+#   dialect: postgres
+#   auto_migrate: true
+#   max_open_conns: 2
+#   max_idle_conns: 1
+#   conn_max_lifetime_ms: 300000
+#   conn_max_idle_time_ms: 60000
 # auth:
 #   oauth2:
 #     enabled: true
 #     issuer: https://dev-dh3dmjr12gnq1hlw.jp.auth0.com/
 #     audience: https://githook.fly.dev
-redirect_base_url: https://app.example.com/oauth/complete
+#     # mode: client_credentials
+#     # client_id: ${GITHOOK_OAUTH2_CLIENT_ID}
+#     # client_secret: ${GITHOOK_OAUTH2_CLIENT_SECRET}
+#     # scopes: githook.read
+# redirect_base_url: https://app.example.com/oauth/complete

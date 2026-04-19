@@ -238,7 +238,6 @@ func (r *RuleEngine) evaluateWithLoggerForTenant(event Event, tenantID string, l
 	matches := make([]RuleMatch, 0, 1)
 	for _, rule := range rules {
 		params, missing := resolveRuleParams(logger, event, rule.vars, rule.varMap)
-		logger.Printf("rule debug: when=%q params=%v", rule.expr.String(), params)
 		if strict && len(missing) > 0 {
 			logger.Printf("rule strict missing params: %v", missing)
 			continue
@@ -317,7 +316,6 @@ func (r *RuleEngine) evaluateRulesWithLoggerForTenant(event Event, tenantID stri
 	matches := make([]MatchedRule, 0, 1)
 	for _, rule := range rules {
 		params, missing := resolveRuleParams(logger, event, rule.vars, rule.varMap)
-		logger.Printf("rule debug: when=%q params=%v", rule.expr.String(), params)
 		if strict && len(missing) > 0 {
 			logger.Printf("rule strict missing params: %v", missing)
 			continue

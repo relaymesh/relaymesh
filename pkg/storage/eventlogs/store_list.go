@@ -17,6 +17,9 @@ func (s *Store) ListEventLogs(ctx context.Context, filter storage.EventLogFilter
 	query := applyFilter(s.tableDB().WithContext(ctx), filter, ctx).
 		Order("created_at desc").
 		Order("id desc")
+	if !filter.CursorCreatedAt.IsZero() && strings.TrimSpace(filter.CursorID) != "" {
+		query = query.Where("(created_at < ?) OR (created_at = ? AND id < ?)", filter.CursorCreatedAt, filter.CursorCreatedAt, strings.TrimSpace(filter.CursorID))
+	}
 	if filter.Limit > 0 {
 		query = query.Limit(filter.Limit)
 	}

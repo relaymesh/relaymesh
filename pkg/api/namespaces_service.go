@@ -16,6 +16,8 @@ import (
 	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
+const maxNamespaceListSize = 1000
+
 // NamespacesService implements the Connect/GRPC NamespacesService.
 type NamespacesService struct {
 	Store                 storage.NamespaceStore
@@ -42,6 +44,7 @@ func (s *NamespacesService) ListNamespaces(
 		Owner:    strings.TrimSpace(req.Msg.GetOwner()),
 		RepoName: strings.TrimSpace(req.Msg.GetRepo()),
 		FullName: strings.TrimSpace(req.Msg.GetFullName()),
+		Limit:    maxNamespaceListSize,
 	}
 	if stateID != "" {
 		filter.AccountID = stateID
@@ -134,6 +137,7 @@ func (s *NamespacesService) SyncNamespaces(
 
 	filter := storage.NamespaceFilter{
 		Provider: provider,
+		Limit:    maxNamespaceListSize,
 	}
 	if stateID != "" {
 		filter.AccountID = stateID

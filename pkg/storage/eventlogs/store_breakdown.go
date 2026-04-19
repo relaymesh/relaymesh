@@ -150,6 +150,13 @@ type latencyStats struct {
 }
 
 func (s *Store) fetchLatencyByGroup(ctx context.Context, filter storage.EventLogFilter, groupExpr string, keys []string) (map[string]latencyStats, error) {
+	if s.db != nil && s.db.Dialector != nil && s.db.Dialector.Name() == "postgres" {
+		stats, err := s.fetchLatencyByGroupPostgres(ctx, filter, groupExpr, keys)
+		if err == nil {
+			return stats, nil
+		}
+	}
+
 	query := applyFilter(s.tableDB().WithContext(ctx), filter, ctx)
 	type latencyRow struct {
 		Key       string `gorm:"column:key"`
@@ -179,6 +186,34 @@ func (s *Store) fetchLatencyByGroup(ctx context.Context, filter storage.EventLog
 			P95: percentile(values, 0.95),
 			P99: percentile(values, 0.99),
 		}
+	}
+	return out, nil
+}
+
+func (s *Store) fetchLatencyByGroupPostgres(ctx context.Context, filter storage.EventLogFilter, groupExpr string, keys []string) (map[string]latencyStats, error) {
+	query := applyFilter(s.tableDB().WithContext(ctx), filter, ctx)
+	type latencyAggRow struct {
+		Key string  `gorm:"column:key"`
+		P50 float64 `gorm:"column:p50"`
+		P95 float64 `gorm:"column:p95"`
+		P99 float64 `gorm:"column:p99"`
+	}
+	var rows []latencyAggRow
+	if err := query.Select(
+		groupExpr+" as key",
+		"percentile_cont(0.5) within group (order by latency_ms) as p50",
+		"percentile_cont(0.95) within group (order by latency_ms) as p95",
+		"percentile_cont(0.99) within group (order by latency_ms) as p99",
+	).Where("latency_ms > 0").Where(groupExpr+" IN ?", keys).Group(groupExpr).Find(&rows).Error; err != nil {
+		return nil, err
+	}
+	out := make(map[string]latencyStats, len(rows))
+	for _, row := range rows {
+		key := strings.TrimSpace(row.Key)
+		if key == "" {
+			continue
+		}
+		out[key] = latencyStats{P50: row.P50, P95: row.P95, P99: row.P99}
 	}
 	return out, nil
 }

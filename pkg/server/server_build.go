@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -91,7 +92,7 @@ func BuildHandler(ctx context.Context, config core.Config, logger *log.Logger, m
 	if verifier != nil {
 		connectOpts = append(connectOpts, connect.WithInterceptors(newAuthInterceptor(verifier, logger)))
 	}
-	connectOpts = append(connectOpts, connect.WithInterceptors(newTenantInterceptor()))
+	connectOpts = append(connectOpts, connect.WithInterceptors(newTenantInterceptor(config.Server.AllowTenantHeaderFallback)))
 
 	webhookRegistry := webhook.DefaultRegistry()
 	oauthRegistry := oauth.DefaultRegistry()
@@ -168,12 +169,13 @@ func BuildHandler(ctx context.Context, config core.Config, logger *log.Logger, m
 	}
 	{
 		eventLogSvc := &api.EventLogsService{
-			Store:       stores.logStore,
-			RuleStore:   stores.ruleStore,
-			DriverStore: stores.driverStore,
-			Publisher:   publisher,
-			RulesStrict: config.RulesStrict,
-			Logger:      logger,
+			Store:             stores.logStore,
+			RuleStore:         stores.ruleStore,
+			DriverStore:       stores.driverStore,
+			Publisher:         publisher,
+			RulesStrict:       config.RulesStrict,
+			ReplayConcurrency: config.Server.MaxReplayConcurrency,
+			Logger:            logger,
 		}
 		path, handler := cloudv1connect.NewEventLogsServiceHandler(eventLogSvc, connectOpts...)
 		mux.Handle(path, handler)
@@ -235,6 +237,7 @@ func BuildHandler(ctx context.Context, config core.Config, logger *log.Logger, m
 		mux.Handle(provider.CallbackPath(), provider.NewHandler(providerCfg, oauthOpts))
 	}
 
+	originAllowed := allowOriginFunc(config.Server.CORSAllowedOrigins)
 	corsHandler := cors.New(cors.Options{
 		AllowedMethods: []string{
 			http.MethodHead,
@@ -244,8 +247,8 @@ func BuildHandler(ctx context.Context, config core.Config, logger *log.Logger, m
 			http.MethodPatch,
 			http.MethodDelete,
 		},
-		AllowOriginFunc: func(_ string) bool { return true },
-		AllowedHeaders:  []string{"*"},
+		AllowOriginFunc: originAllowed,
+		AllowedHeaders:  config.Server.CORSAllowedHeaders,
 		ExposedHeaders: []string{
 			"Accept",
 			"Accept-Encoding",
@@ -266,4 +269,40 @@ func BuildHandler(ctx context.Context, config core.Config, logger *log.Logger, m
 	handler := h2c.NewHandler(corsHandler.Handler(appHandler), &http2.Server{})
 
 	return handler, cleanup, nil
+}
+
+func allowOriginFunc(origins []string) func(string) bool {
+	if len(origins) == 0 {
+		return func(_ string) bool { return false }
+	}
+	allowAll := false
+	allowed := make(map[string]struct{}, len(origins))
+	for _, raw := range origins {
+		origin := strings.TrimSpace(raw)
+		if origin == "" {
+			continue
+		}
+		if origin == "*" {
+			allowAll = true
+			continue
+		}
+		if parsed, err := url.Parse(origin); err == nil && parsed.Scheme != "" && parsed.Host != "" {
+			allowed[parsed.Scheme+"://"+parsed.Host] = struct{}{}
+		}
+	}
+	if allowAll {
+		return func(_ string) bool { return true }
+	}
+	return func(origin string) bool {
+		origin = strings.TrimSpace(origin)
+		if origin == "" {
+			return false
+		}
+		parsed, err := url.Parse(origin)
+		if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+			return false
+		}
+		_, ok := allowed[parsed.Scheme+"://"+parsed.Host]
+		return ok
+	}
 }

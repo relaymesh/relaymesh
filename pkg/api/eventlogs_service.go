@@ -9,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -24,16 +25,21 @@ import (
 const (
 	defaultEventLogPageSize = 50
 	maxEventLogPageSize     = 200
+	eventLogCursorPrefix    = "c:"
 )
 
 // EventLogsService handles queries for webhook event logs and analytics.
 type EventLogsService struct {
-	Store       storage.EventLogStore
-	RuleStore   storage.RuleStore
-	DriverStore storage.DriverStore
-	Publisher   core.Publisher
-	RulesStrict bool
-	Logger      *log.Logger
+	Store             storage.EventLogStore
+	RuleStore         storage.RuleStore
+	DriverStore       storage.DriverStore
+	Publisher         core.Publisher
+	RulesStrict       bool
+	ReplayConcurrency int
+	Logger            *log.Logger
+
+	limiterMu sync.Mutex
+	limiter   chan struct{}
 }
 
 func (s *EventLogsService) ListEventLogs(
@@ -54,27 +60,36 @@ func (s *EventLogsService) ListEventLogs(
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInvalidArgument, err)
 	}
+	cursorCreatedAt, cursorID, hasCursor, err := decodeEventLogCursorToken(req.Msg.GetPageToken())
+	if err != nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, err)
+	}
 	var matched *bool
 	if req.Msg.GetMatchedOnly() {
 		value := true
 		matched = &value
 	}
 	filter := storage.EventLogFilter{
-		Provider:       strings.TrimSpace(req.Msg.GetProvider()),
-		Name:           strings.TrimSpace(req.Msg.GetName()),
-		Topic:          strings.TrimSpace(req.Msg.GetTopic()),
-		RequestID:      strings.TrimSpace(req.Msg.GetRequestId()),
-		StateID:        strings.TrimSpace(req.Msg.GetStateId()),
-		InstallationID: strings.TrimSpace(req.Msg.GetInstallationId()),
-		NamespaceID:    strings.TrimSpace(req.Msg.GetNamespaceId()),
-		NamespaceName:  strings.TrimSpace(req.Msg.GetNamespaceName()),
-		RuleID:         strings.TrimSpace(req.Msg.GetRuleId()),
-		RuleWhen:       strings.TrimSpace(req.Msg.GetRuleWhen()),
-		Matched:        matched,
-		StartTime:      fromProtoTimestamp(req.Msg.GetStartTime()),
-		EndTime:        fromProtoTimestamp(req.Msg.GetEndTime()),
-		Limit:          pageSize + 1,
-		Offset:         offset,
+		Provider:        strings.TrimSpace(req.Msg.GetProvider()),
+		Name:            strings.TrimSpace(req.Msg.GetName()),
+		Topic:           strings.TrimSpace(req.Msg.GetTopic()),
+		RequestID:       strings.TrimSpace(req.Msg.GetRequestId()),
+		StateID:         strings.TrimSpace(req.Msg.GetStateId()),
+		InstallationID:  strings.TrimSpace(req.Msg.GetInstallationId()),
+		NamespaceID:     strings.TrimSpace(req.Msg.GetNamespaceId()),
+		NamespaceName:   strings.TrimSpace(req.Msg.GetNamespaceName()),
+		RuleID:          strings.TrimSpace(req.Msg.GetRuleId()),
+		RuleWhen:        strings.TrimSpace(req.Msg.GetRuleWhen()),
+		Matched:         matched,
+		StartTime:       fromProtoTimestamp(req.Msg.GetStartTime()),
+		EndTime:         fromProtoTimestamp(req.Msg.GetEndTime()),
+		Limit:           pageSize + 1,
+		Offset:          offset,
+		CursorCreatedAt: cursorCreatedAt,
+		CursorID:        cursorID,
+	}
+	if hasCursor {
+		filter.Offset = 0
 	}
 	records, err := s.Store.ListEventLogs(ctx, filter)
 	if err != nil {
@@ -104,7 +119,8 @@ func (s *EventLogsService) ListEventLogs(
 	nextToken := ""
 	if len(records) > pageSize {
 		records = records[:pageSize]
-		nextToken = encodePageToken(offset + pageSize)
+		last := records[len(records)-1]
+		nextToken = encodeEventLogCursorToken(last.CreatedAt, last.ID)
 	}
 	resp := &cloudv1.ListEventLogsResponse{
 		Logs:          toProtoEventLogRecords(records),
@@ -358,7 +374,16 @@ func (s *EventLogsService) ReplayEventLog(
 	}
 
 	tenantCtx := storage.WithTenant(context.Background(), storage.TenantFromContext(ctx))
-	go s.runReplayAsync(tenantCtx, event, ruleMatches, replayRecords, publisher, publishers)
+	limiter := s.replayLimiter()
+	select {
+	case limiter <- struct{}{}:
+		go func() {
+			defer func() { <-limiter }()
+			s.runReplayAsync(tenantCtx, event, ruleMatches, replayRecords, publisher, publishers)
+		}()
+	default:
+		return nil, connect.NewError(connect.CodeResourceExhausted, errors.New("replay queue is full"))
+	}
 
 	return connect.NewResponse(&cloudv1.ReplayEventLogResponse{
 		LogId:   record.ID,
@@ -487,6 +512,19 @@ func cloneReplayHeaders(headers map[string][]string) map[string][]string {
 	return out
 }
 
+func (s *EventLogsService) replayLimiter() chan struct{} {
+	limit := s.ReplayConcurrency
+	if limit <= 0 {
+		limit = 8
+	}
+	s.limiterMu.Lock()
+	defer s.limiterMu.Unlock()
+	if s.limiter == nil || cap(s.limiter) != limit {
+		s.limiter = make(chan struct{}, limit)
+	}
+	return s.limiter
+}
+
 func (s *EventLogsService) replayResolveDriverRecord(ctx context.Context, match core.RuleMatch) (*storage.DriverRecord, error) {
 	name := strings.TrimSpace(match.DriverName)
 	if name != "" {
@@ -528,11 +566,51 @@ func decodePageToken(token string) (int, error) {
 	if err != nil {
 		return 0, errors.New("invalid page token")
 	}
+	if strings.HasPrefix(string(raw), eventLogCursorPrefix) {
+		return 0, nil
+	}
 	offset, err := strconv.Atoi(string(raw))
 	if err != nil || offset < 0 {
 		return 0, errors.New("invalid page token")
 	}
 	return offset, nil
+}
+
+func decodeEventLogCursorToken(token string) (time.Time, string, bool, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return time.Time{}, "", false, nil
+	}
+	raw, err := base64.StdEncoding.DecodeString(token)
+	if err != nil {
+		return time.Time{}, "", false, nil
+	}
+	payload := string(raw)
+	if !strings.HasPrefix(payload, eventLogCursorPrefix) {
+		return time.Time{}, "", false, nil
+	}
+	parts := strings.SplitN(strings.TrimPrefix(payload, eventLogCursorPrefix), ":", 2)
+	if len(parts) != 2 {
+		return time.Time{}, "", true, errors.New("invalid page token")
+	}
+	unixNano, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return time.Time{}, "", true, errors.New("invalid page token")
+	}
+	id := strings.TrimSpace(parts[1])
+	if id == "" {
+		return time.Time{}, "", true, errors.New("invalid page token")
+	}
+	return time.Unix(0, unixNano).UTC(), id, true, nil
+}
+
+func encodeEventLogCursorToken(createdAt time.Time, id string) string {
+	id = strings.TrimSpace(id)
+	if createdAt.IsZero() || id == "" {
+		return ""
+	}
+	payload := eventLogCursorPrefix + strconv.FormatInt(createdAt.UTC().UnixNano(), 10) + ":" + id
+	return base64.StdEncoding.EncodeToString([]byte(payload))
 }
 
 func encodePageToken(offset int) string {

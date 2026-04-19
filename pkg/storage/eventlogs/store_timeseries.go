@@ -3,7 +3,6 @@ package eventlogs
 import (
 	"context"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/relaymesh/relaymesh/pkg/storage"
@@ -24,14 +23,27 @@ func (s *Store) GetEventLogTimeseries(ctx context.Context, filter storage.EventL
 		return nil, errors.New("end_time must be after start_time")
 	}
 
-	query := applyFilter(s.tableDB().WithContext(ctx), filter, ctx)
-	var rows []struct {
-		CreatedAt time.Time `gorm:"column:created_at"`
-		Matched   bool      `gorm:"column:matched"`
-		RequestID string    `gorm:"column:request_id"`
-		Status    string    `gorm:"column:status"`
+	bucketExpr, err := timeseriesBucketExpr(s.db.Dialector.Name(), interval)
+	if err != nil {
+		return nil, err
 	}
-	if err := query.Select("created_at", "matched", "request_id", "status").Order("created_at asc").Find(&rows).Error; err != nil {
+
+	query := applyFilter(s.tableDB().WithContext(ctx), filter, ctx)
+	type aggregateRow struct {
+		BucketUnix   int64 `gorm:"column:bucket_unix"`
+		EventCount   int64 `gorm:"column:event_count"`
+		MatchedCount int64 `gorm:"column:matched_count"`
+		DistinctReq  int64 `gorm:"column:distinct_req"`
+		FailureCount int64 `gorm:"column:failure_count"`
+	}
+	var rows []aggregateRow
+	if err := query.Select(
+		bucketExpr+" as bucket_unix",
+		"count(*) as event_count",
+		"sum(case when matched = true then 1 else 0 end) as matched_count",
+		"count(distinct case when request_id <> '' then request_id end) as distinct_req",
+		"sum(case when lower(status) = 'failed' then 1 else 0 end) as failure_count",
+	).Group(bucketExpr).Order("bucket_unix asc").Find(&rows).Error; err != nil {
 		return nil, err
 	}
 
@@ -42,39 +54,22 @@ func (s *Store) GetEventLogTimeseries(ctx context.Context, filter storage.EventL
 		return nil, errors.New("invalid interval")
 	}
 
-	type bucketData struct {
-		storage.EventLogTimeseriesBucket
-		reqs map[string]struct{}
-	}
-	buckets := make(map[int64]*bucketData)
-
+	buckets := make(map[int64]storage.EventLogTimeseriesBucket, len(rows))
 	for _, row := range rows {
-		ts := row.CreatedAt.UTC()
-		if ts.Before(start) || ts.After(end) {
+		if row.BucketUnix <= 0 {
 			continue
 		}
-		bucket := bucketStart(ts, interval)
-		key := bucket.Unix()
-		entry := buckets[key]
-		if entry == nil {
-			entry = &bucketData{
-				EventLogTimeseriesBucket: storage.EventLogTimeseriesBucket{
-					Start: bucket,
-					End:   bucket.Add(step),
-				},
-				reqs: make(map[string]struct{}),
-			}
-			buckets[key] = entry
+		bucket := time.Unix(row.BucketUnix, 0).UTC()
+		if bucket.Before(start) || bucket.After(end) {
+			continue
 		}
-		entry.EventCount++
-		if row.Matched {
-			entry.MatchedCount++
-		}
-		if row.RequestID != "" {
-			entry.reqs[row.RequestID] = struct{}{}
-		}
-		if strings.EqualFold(row.Status, "failed") {
-			entry.FailureCount++
+		buckets[row.BucketUnix] = storage.EventLogTimeseriesBucket{
+			Start:        bucket,
+			End:          bucket.Add(step),
+			EventCount:   row.EventCount,
+			MatchedCount: row.MatchedCount,
+			DistinctReq:  row.DistinctReq,
+			FailureCount: row.FailureCount,
 		}
 	}
 
@@ -82,8 +77,7 @@ func (s *Store) GetEventLogTimeseries(ctx context.Context, filter storage.EventL
 	for cursor := start; cursor.Before(end) || cursor.Equal(end); cursor = cursor.Add(step) {
 		key := cursor.Unix()
 		if entry, ok := buckets[key]; ok {
-			entry.DistinctReq = int64(len(entry.reqs))
-			out = append(out, entry.EventLogTimeseriesBucket)
+			out = append(out, entry)
 		} else {
 			out = append(out, storage.EventLogTimeseriesBucket{
 				Start: cursor,
@@ -92,6 +86,39 @@ func (s *Store) GetEventLogTimeseries(ctx context.Context, filter storage.EventL
 		}
 	}
 	return out, nil
+}
+
+func timeseriesBucketExpr(dialect string, interval storage.EventLogInterval) (string, error) {
+	switch interval {
+	case storage.EventLogIntervalHour:
+		switch dialect {
+		case "postgres":
+			return "CAST(EXTRACT(EPOCH FROM date_trunc('hour', created_at)) AS BIGINT)", nil
+		case "mysql":
+			return "UNIX_TIMESTAMP(DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00'))", nil
+		case "sqlite":
+			return "CAST(strftime('%s', strftime('%Y-%m-%d %H:00:00', created_at)) AS INTEGER)", nil
+		}
+	case storage.EventLogIntervalDay:
+		switch dialect {
+		case "postgres":
+			return "CAST(EXTRACT(EPOCH FROM date_trunc('day', created_at)) AS BIGINT)", nil
+		case "mysql":
+			return "UNIX_TIMESTAMP(DATE(created_at))", nil
+		case "sqlite":
+			return "CAST(strftime('%s', date(created_at)) AS INTEGER)", nil
+		}
+	case storage.EventLogIntervalWeek:
+		switch dialect {
+		case "postgres":
+			return "CAST(EXTRACT(EPOCH FROM date_trunc('week', created_at)) AS BIGINT)", nil
+		case "mysql":
+			return "UNIX_TIMESTAMP(DATE_SUB(DATE(created_at), INTERVAL WEEKDAY(created_at) DAY))", nil
+		case "sqlite":
+			return "CAST(strftime('%s', date(created_at, '-' || ((CAST(strftime('%w', created_at) AS INTEGER) + 6) % 7) || ' days')) AS INTEGER)", nil
+		}
+	}
+	return "", errors.New("unsupported interval")
 }
 
 func intervalDuration(interval storage.EventLogInterval) time.Duration {

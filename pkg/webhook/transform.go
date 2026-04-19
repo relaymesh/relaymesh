@@ -2,13 +2,17 @@ package webhook
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/dop251/goja"
 
 	"github.com/relaymesh/relaymesh/pkg/core"
 )
+
+const maxTransformRuntime = 2 * time.Second
 
 func applyRuleTransform(event core.Event, transformJS string) (core.Event, error) {
 	transformJS = strings.TrimSpace(transformJS)
@@ -38,6 +42,10 @@ func applyRuleTransform(event core.Event, transformJS string) (core.Event, error
 	if err := vm.Set("event", ctx); err != nil {
 		return event, fmt.Errorf("set transform event context: %w", err)
 	}
+	timer := time.AfterFunc(maxTransformRuntime, func() {
+		vm.Interrupt(errors.New("transform_js execution timed out"))
+	})
+	defer timer.Stop()
 
 	result, err := transform(goja.Undefined(), vm.ToValue(input), vm.ToValue(ctx))
 	if err != nil {

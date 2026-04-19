@@ -104,22 +104,24 @@ type EventLogRecord struct {
 
 // EventLogFilter selects event log rows.
 type EventLogFilter struct {
-	TenantID       string
-	Provider       string
-	Name           string
-	RequestID      string
-	StateID        string
-	InstallationID string
-	NamespaceID    string
-	NamespaceName  string
-	Topic          string
-	RuleID         string
-	RuleWhen       string
-	Matched        *bool
-	StartTime      time.Time
-	EndTime        time.Time
-	Limit          int
-	Offset         int
+	TenantID        string
+	Provider        string
+	Name            string
+	RequestID       string
+	StateID         string
+	InstallationID  string
+	NamespaceID     string
+	NamespaceName   string
+	Topic           string
+	RuleID          string
+	RuleWhen        string
+	Matched         *bool
+	StartTime       time.Time
+	EndTime         time.Time
+	Limit           int
+	Offset          int
+	CursorCreatedAt time.Time
+	CursorID        string
 }
 
 // EventLogCount represents an aggregate count bucket.
@@ -257,6 +259,7 @@ type NamespaceFilter struct {
 	Owner               string
 	RepoName            string
 	FullName            string
+	Limit               int
 }
 
 // Store defines the persistence interface for installation records.
