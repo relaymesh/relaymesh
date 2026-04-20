@@ -27,13 +27,21 @@ go build -o relaymesh ./main.go
 
 ## Quick start (local) 🚀
 
-1) Start the server:
+### Prerequisites
+
+- Go `1.24+`
+- Docker + Docker Compose
+- A message broker (RabbitMQ/NATS/Kafka). The repo includes local infra via `docker-compose.yml`.
+
+### 1) Start local infrastructure
 
 ```bash
-relaymesh serve --config config.yaml
+docker-compose up -d
 ```
 
-Minimal `config.yaml`:
+### 2) Configure the server
+
+Create a local config (example uses Postgres in docker compose):
 
 ```yaml
 server:
@@ -43,12 +51,33 @@ endpoint: http://localhost:8080
 
 storage:
   driver: postgres
-  dsn: postgres://relaymesh:relaymesh@localhost:5432/relaymesh?sslmode=disable
+  dsn: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
   dialect: postgres
   auto_migrate: true
 ```
 
-2) Register a provider instance (YAML):
+If you enable OAuth2 auth, use environment variables for secrets instead of hardcoding:
+
+```bash
+export GITHOOK_STORAGE_DSN='postgres://...'
+export GITHOOK_OAUTH2_CLIENT_ID='...'
+export GITHOOK_OAUTH2_CLIENT_SECRET='...'
+```
+
+### 3) Start the server
+
+```bash
+relaymesh serve --config config.yaml
+```
+
+Health checks:
+
+```bash
+curl -s http://localhost:8080/healthz
+curl -s http://localhost:8080/readyz
+```
+
+### 4) Register a provider instance (YAML)
 
 ```bash
 relaymesh --endpoint http://localhost:8080 providers create \
@@ -69,7 +98,7 @@ webhook:
   secret: your-webhook-secret
 ```
 
-3) Create a driver config (YAML):
+### 5) Create a driver config (YAML)
 
 ```bash
 relaymesh --endpoint http://localhost:8080 drivers create \
@@ -85,7 +114,7 @@ exchange: relaymesh.events
 routing_key_template: "{topic}"
 ```
 
-4) Create a rule:
+### 6) Create a rule
 
 ```bash
 relaymesh --endpoint http://localhost:8080 rules create \
@@ -96,12 +125,26 @@ relaymesh --endpoint http://localhost:8080 rules create \
 
 `--driver-id` is the driver record ID (see `relaymesh drivers list`).
 
-5) Point your provider webhook to:
+### 7) Point your webhook provider to relaymesh
 
-```
+```text
 http://<server-host>/webhooks/github
 http://<server-host>/webhooks/gitlab
 http://<server-host>/webhooks/bitbucket
+```
+
+### 8) Verify end-to-end quickly
+
+Send a test event manually:
+
+```bash
+./scripts/send_webhook.sh github '{"action":"opened"}'
+```
+
+Then inspect event logs:
+
+```bash
+relaymesh --endpoint http://localhost:8080 eventlogs list --provider github
 ```
 
 ## CLI essentials 🧭
@@ -214,6 +257,21 @@ wk.Run()
 
 If a handler returns an error (Go) or throws/raises an exception (TypeScript/Python), the SDK marks the event log status as `failed`; otherwise it is marked `success`.
 Use `WithRetryCount(n)` and `WithConcurrency(n)` in each SDK to control retry attempts and in-flight message processing.
+
+## Release workflow 🚢
+
+- Releases are triggered by pushing a semver tag like `v1.2.3`.
+- The release pipeline publishes Go artifacts (GoReleaser), Docker images, the TypeScript SDK to npm, and the Python SDK to PyPI.
+- SDK versions are derived from the tag:
+  - TypeScript SDK: `sdk/typescript/worker/package.json` is bumped to `${tag without v}` during CI before `npm publish`.
+  - Python SDK: `RELAYMESH_PY_VERSION` is set to `${tag without v}` during CI before building/publishing.
+
+Example:
+
+```bash
+git tag v0.0.20
+git push origin v0.0.20
+```
 
 ## Docs index 📚
 
