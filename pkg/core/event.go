@@ -4,8 +4,26 @@ package core
 type Event struct {
 	// Provider is the name of the Git provider (e.g., "github", "gitlab").
 	Provider string `json:"provider"`
+	// ProviderType is the normalized provider category (e.g. "scm").
+	ProviderType string `json:"provider_type,omitempty"`
 	// Name is the name of the event (e.g., "pull_request", "push").
 	Name string `json:"name"`
+	// EventType is the normalized event type. For current SCM providers this mirrors Name.
+	EventType string `json:"event_type,omitempty"`
+	// Action is the normalized action from the payload when available (e.g. opened, closed).
+	Action string `json:"action,omitempty"`
+	// ResourceType is the normalized resource/entity type for the event.
+	ResourceType string `json:"resource_type,omitempty"`
+	// ResourceID is the normalized stable id of the affected resource.
+	ResourceID string `json:"resource_id,omitempty"`
+	// ResourceName is a human-friendly resource identifier (e.g. owner/repo).
+	ResourceName string `json:"resource_name,omitempty"`
+	// ActorID identifies the principal that triggered the event.
+	ActorID string `json:"actor_id,omitempty"`
+	// ActorName is the human-friendly principal name/login.
+	ActorName string `json:"actor_name,omitempty"`
+	// OccurredAt is the source event timestamp when available.
+	OccurredAt string `json:"occurred_at,omitempty"`
 	// RequestID links the event back to the inbound webhook request.
 	RequestID string `json:"request_id,omitempty"`
 	// LogID links the event to a stored event log entry.

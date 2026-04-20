@@ -10,6 +10,7 @@ import (
 	"github.com/relaymesh/relaymesh/pkg/auth"
 	"github.com/relaymesh/relaymesh/pkg/core"
 	"github.com/relaymesh/relaymesh/pkg/drivers"
+	"github.com/relaymesh/relaymesh/pkg/providers"
 	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
@@ -32,6 +33,7 @@ type HandlerOptions struct {
 // Provider is a plugin interface for webhook integrations.
 type Provider interface {
 	Name() string
+	Definition() providers.Definition
 	WebhookPath(cfg auth.ProviderConfig) string
 	NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) (http.Handler, error)
 	WebhookLogFields(cfg auth.ProviderConfig) string

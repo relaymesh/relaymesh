@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/relaymesh/relaymesh/pkg/auth"
+	providerspkg "github.com/relaymesh/relaymesh/pkg/providers"
 )
 
 type gitHubProvider struct{}
@@ -24,6 +25,11 @@ func DefaultRegistry() *Registry {
 
 func (gitHubProvider) Name() string {
 	return "github"
+}
+
+func (gitHubProvider) Definition() providerspkg.Definition {
+	def, _ := providerspkg.DefinitionFor("github")
+	return def
 }
 
 func (gitHubProvider) WebhookPath(cfg auth.ProviderConfig) string {
@@ -57,6 +63,11 @@ func (gitLabProvider) Name() string {
 	return "gitlab"
 }
 
+func (gitLabProvider) Definition() providerspkg.Definition {
+	def, _ := providerspkg.DefinitionFor("gitlab")
+	return def
+}
+
 func (gitLabProvider) WebhookPath(cfg auth.ProviderConfig) string {
 	return cfg.Webhook.Path
 }
@@ -85,6 +96,11 @@ func (gitLabProvider) WebhookLogFields(cfg auth.ProviderConfig) string {
 
 func (bitbucketProvider) Name() string {
 	return "bitbucket"
+}
+
+func (bitbucketProvider) Definition() providerspkg.Definition {
+	def, _ := providerspkg.DefinitionFor("bitbucket")
+	return def
 }
 
 func (bitbucketProvider) WebhookPath(cfg auth.ProviderConfig) string {

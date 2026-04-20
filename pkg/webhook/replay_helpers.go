@@ -22,10 +22,19 @@ func BuildReplayEvent(record storage.EventLogRecord) (core.Event, error) {
 	if rawObject == nil {
 		return core.Event{}, errors.New("event log payload is invalid json")
 	}
-	rawObject = annotatePayload(rawObject, data, record.Provider, record.Name)
+	rawObject, normalized := annotatePayload(rawObject, data, record.Provider, record.Name)
 	return core.Event{
 		Provider:       record.Provider,
+		ProviderType:   normalized.ProviderType,
 		Name:           record.Name,
+		EventType:      normalized.EventType,
+		Action:         normalized.Action,
+		ResourceType:   normalized.ResourceType,
+		ResourceID:     normalized.ResourceID,
+		ResourceName:   normalized.ResourceName,
+		ActorID:        normalized.ActorID,
+		ActorName:      normalized.ActorName,
+		OccurredAt:     normalized.OccurredAt,
 		RequestID:      record.RequestID,
 		Headers:        cloneHeadersMap(record.Headers),
 		Data:           data,

@@ -29,9 +29,10 @@ func rawObjectAndFlatten(raw []byte) (interface{}, map[string]interface{}) {
 	return out, core.Flatten(objectMap)
 }
 
-func annotatePayload(rawObject interface{}, data map[string]interface{}, provider, eventName string) interface{} {
+func annotatePayload(rawObject interface{}, data map[string]interface{}, provider, eventName string) (interface{}, normalizedEventFields) {
 	provider = strings.TrimSpace(provider)
 	eventName = strings.TrimSpace(eventName)
+	normalized := deriveNormalizedEventFields(provider, eventName, data)
 	var refValue string
 	var hasRef bool
 	if data != nil {
@@ -40,6 +41,31 @@ func annotatePayload(rawObject interface{}, data map[string]interface{}, provide
 		}
 		if eventName != "" {
 			data["event"] = eventName
+			data["event_type"] = normalized.EventType
+		}
+		if normalized.ProviderType != "" {
+			data["provider_type"] = normalized.ProviderType
+		}
+		if normalized.Action != "" {
+			data["action"] = normalized.Action
+		}
+		if normalized.ResourceType != "" {
+			data["resource_type"] = normalized.ResourceType
+		}
+		if normalized.ResourceID != "" {
+			data["resource_id"] = normalized.ResourceID
+		}
+		if normalized.ResourceName != "" {
+			data["resource_name"] = normalized.ResourceName
+		}
+		if normalized.ActorID != "" {
+			data["actor_id"] = normalized.ActorID
+		}
+		if normalized.ActorName != "" {
+			data["actor_name"] = normalized.ActorName
+		}
+		if normalized.OccurredAt != "" {
+			data["occurred_at"] = normalized.OccurredAt
 		}
 		if ref, ok := deriveGitRef(data); ok {
 			refValue = ref
@@ -53,15 +79,40 @@ func annotatePayload(rawObject interface{}, data map[string]interface{}, provide
 		}
 		if eventName != "" {
 			obj["event"] = eventName
+			obj["event_type"] = normalized.EventType
+		}
+		if normalized.ProviderType != "" {
+			obj["provider_type"] = normalized.ProviderType
+		}
+		if normalized.Action != "" {
+			obj["action"] = normalized.Action
+		}
+		if normalized.ResourceType != "" {
+			obj["resource_type"] = normalized.ResourceType
+		}
+		if normalized.ResourceID != "" {
+			obj["resource_id"] = normalized.ResourceID
+		}
+		if normalized.ResourceName != "" {
+			obj["resource_name"] = normalized.ResourceName
+		}
+		if normalized.ActorID != "" {
+			obj["actor_id"] = normalized.ActorID
+		}
+		if normalized.ActorName != "" {
+			obj["actor_name"] = normalized.ActorName
+		}
+		if normalized.OccurredAt != "" {
+			obj["occurred_at"] = normalized.OccurredAt
 		}
 		if hasRef {
 			obj["ref"] = refValue
 		} else if ref, ok := deriveGitRef(data); ok {
 			obj["ref"] = ref
 		}
-		return obj
+		return obj, normalized
 	}
-	return rawObject
+	return rawObject, normalized
 }
 
 func deriveGitRef(data map[string]interface{}) (string, bool) {

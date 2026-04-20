@@ -141,10 +141,16 @@ Send a test event manually:
 ./scripts/send_webhook.sh github '{"action":"opened"}'
 ```
 
-Then inspect event logs:
+Confirm your rule is present:
 
 ```bash
-relaymesh --endpoint http://localhost:8080 eventlogs list --provider github
+relaymesh --endpoint http://localhost:8080 rules list
+```
+
+Then run a worker example to consume published messages:
+
+```bash
+cd examples && make run-go
 ```
 
 ## CLI essentials 🧭

@@ -5,13 +5,17 @@ import (
 	"testing"
 
 	"github.com/relaymesh/relaymesh/pkg/auth"
+	providerspkg "github.com/relaymesh/relaymesh/pkg/providers"
 )
 
 type webhookProviderStub struct {
 	name string
 }
 
-func (w webhookProviderStub) Name() string                               { return w.name }
+func (w webhookProviderStub) Name() string { return w.name }
+func (w webhookProviderStub) Definition() providerspkg.Definition {
+	return providerspkg.Definition{Name: w.name}
+}
 func (w webhookProviderStub) WebhookPath(cfg auth.ProviderConfig) string { return cfg.Webhook.Path }
 func (w webhookProviderStub) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) (http.Handler, error) {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) { rw.WriteHeader(http.StatusNoContent) }), nil

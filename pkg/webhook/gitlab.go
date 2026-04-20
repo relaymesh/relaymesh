@@ -103,7 +103,7 @@ func (h *GitLabHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch payload.(type) {
 	default:
 		rawObject, data := rawObjectAndFlatten(rawBody)
-		rawObject = annotatePayload(rawObject, data, "gitlab", eventName)
+		rawObject, normalized := annotatePayload(rawObject, data, "gitlab", eventName)
 		namespaceID, namespaceName := gitlabNamespaceInfo(rawBody)
 		tenantID, stateID, installationID, instanceKey := h.resolveStateID(r.Context(), rawBody)
 		if installationID == "" {
@@ -118,7 +118,16 @@ func (h *GitLabHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		h.emit(r, logger, core.Event{
 			Provider:            "gitlab",
+			ProviderType:        normalized.ProviderType,
 			Name:                eventName,
+			EventType:           normalized.EventType,
+			Action:              normalized.Action,
+			ResourceType:        normalized.ResourceType,
+			ResourceID:          normalized.ResourceID,
+			ResourceName:        normalized.ResourceName,
+			ActorID:             normalized.ActorID,
+			ActorName:           normalized.ActorName,
+			OccurredAt:          normalized.OccurredAt,
 			RequestID:           reqID,
 			Headers:             cloneHeaders(r.Header),
 			Data:                data,

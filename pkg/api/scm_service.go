@@ -31,42 +31,35 @@ func (s *SCMService) GetSCMClient(
 	ctx context.Context,
 	req *connect.Request[cloudv1.GetSCMClientRequest],
 ) (*connect.Response[cloudv1.GetSCMClientResponse], error) {
-	if s.Store == nil {
-		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("storage not configured"))
-	}
 	provider := auth.NormalizeProviderName(req.Msg.GetProvider())
 	installationID := strings.TrimSpace(req.Msg.GetInstallationId())
 	instanceKey := strings.TrimSpace(req.Msg.GetProviderInstanceKey())
-	if provider == "" || installationID == "" {
-		return nil, connect.NewError(connect.CodeInvalidArgument, errors.New("provider and installation_id are required"))
-	}
-
-	record, err := s.resolveInstallation(ctx, provider, installationID, instanceKey)
+	resolved, err := s.GetProviderClient(ctx, provider, installationID, instanceKey)
 	if err != nil {
-		logError(s.Logger, "installation lookup failed", err)
-		return nil, connect.NewError(connect.CodeInternal, errors.New("installation lookup failed"))
-	}
-	if record == nil {
-		return nil, connect.NewError(connect.CodeNotFound, errors.New("installation not found"))
-	}
-	if instanceKey == "" {
-		instanceKey = strings.TrimSpace(record.ProviderInstanceKey)
-	}
-
-	providerCfg, cfgErr := s.providerConfigFor(ctx, provider, instanceKey)
-	if cfgErr != nil {
-		logError(s.Logger, "provider config lookup failed", cfgErr)
-		return nil, connect.NewError(connect.CodeFailedPrecondition, errors.New("provider config missing"))
-	}
-
-	client, err := s.clientForInstallation(ctx, provider, providerCfg, record)
-	if err != nil {
-		logError(s.Logger, "scm client lookup failed", err)
+		logError(s.Logger, "provider client lookup failed", err)
+		if strings.Contains(err.Error(), "required") {
+			return nil, connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		if strings.Contains(err.Error(), "not found") {
+			return nil, connect.NewError(connect.CodeNotFound, err)
+		}
+		if strings.Contains(err.Error(), "storage not configured") {
+			return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+		}
 		return nil, connect.NewError(connect.CodeFailedPrecondition, err)
+	}
+	if resolved == nil {
+		return nil, connect.NewError(connect.CodeNotFound, errors.New("installation not found"))
 	}
 
 	resp := &cloudv1.GetSCMClientResponse{
-		Client: client,
+		Client: &cloudv1.SCMClient{
+			Provider:            resolved.Provider,
+			ApiBaseUrl:          resolved.APIBaseURL,
+			AccessToken:         resolved.AccessToken,
+			ExpiresAt:           resolved.ExpiresAt,
+			ProviderInstanceKey: resolved.ProviderInstanceKey,
+		},
 	}
 	return connect.NewResponse(resp), nil
 }

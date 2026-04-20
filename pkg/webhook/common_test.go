@@ -33,7 +33,7 @@ func TestRawObjectAndFlatten(t *testing.T) {
 func TestAnnotatePayload(t *testing.T) {
 	raw := map[string]interface{}{"foo": "bar"}
 	data := map[string]interface{}{"x": "y"}
-	out := annotatePayload(raw, data, "github", "push")
+	out, normalized := annotatePayload(raw, data, "github", "push")
 	obj, ok := out.(map[string]interface{})
 	if !ok {
 		t.Fatalf("expected map output")
@@ -43,6 +43,9 @@ func TestAnnotatePayload(t *testing.T) {
 	}
 	if data["provider"] != "github" || data["event"] != "push" {
 		t.Fatalf("unexpected data annotations: %v", data)
+	}
+	if normalized.ProviderType != "scm" || normalized.EventType != "push" {
+		t.Fatalf("unexpected normalized fields: %+v", normalized)
 	}
 }
 

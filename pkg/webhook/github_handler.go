@@ -187,7 +187,7 @@ func (h *GitHubHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	default:
 		rawObject, data := rawObjectAndFlatten(rawBody)
-		rawObject = annotatePayload(rawObject, data, "github", eventName)
+		rawObject, normalized := annotatePayload(rawObject, data, "github", eventName)
 		namespaceID, namespaceName := githubNamespaceInfo(rawBody)
 		tenantID, stateID, installationID, instanceKey := h.resolveStateID(r.Context(), rawBody)
 		if installationID == "" {
@@ -205,7 +205,16 @@ func (h *GitHubHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		h.emit(r, logger, core.Event{
 			Provider:            "github",
+			ProviderType:        normalized.ProviderType,
 			Name:                eventName,
+			EventType:           normalized.EventType,
+			Action:              normalized.Action,
+			ResourceType:        normalized.ResourceType,
+			ResourceID:          normalized.ResourceID,
+			ResourceName:        normalized.ResourceName,
+			ActorID:             normalized.ActorID,
+			ActorName:           normalized.ActorName,
+			OccurredAt:          normalized.OccurredAt,
 			RequestID:           reqID,
 			Headers:             cloneHeaders(r.Header),
 			Data:                data,
