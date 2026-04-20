@@ -140,6 +140,39 @@ class BitbucketClient:
         return resp.json()
 
 
+class SlackClient:
+    def __init__(self, token: str, base_url: str) -> None:
+        self.token = token
+        self.base_url = base_url
+
+    def request(
+        self,
+        method: str,
+        path: str,
+        body: Optional[object] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> HTTPResponse:
+        merged = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json",
+        }
+        if headers:
+            merged.update(headers)
+        return _request(self.base_url, method, path, body, merged)
+
+    def request_json(
+        self,
+        method: str,
+        path: str,
+        body: Optional[object] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> object:
+        resp = self.request(method, path, body, headers)
+        if resp.status >= 300:
+            raise RuntimeError(f"slack request failed ({resp.status}): {resp.text()}")
+        return resp.json()
+
+
 def GitHubClientFromEvent(evt: object) -> Optional[GitHubClient]:
     client = getattr(evt, "client", None)
     if isinstance(client, GitHubClient):
@@ -161,6 +194,13 @@ def BitbucketClientFromEvent(evt: object) -> Optional[BitbucketClient]:
     return None
 
 
+def SlackClientFromEvent(evt: object) -> Optional[SlackClient]:
+    client = getattr(evt, "client", None)
+    if isinstance(client, SlackClient):
+        return client
+    return None
+
+
 def new_provider_client(provider: str, token: str, base_url: str) -> SCMClient:
     normalized = (provider or "").strip().lower()
     if normalized == "github":
@@ -169,6 +209,8 @@ def new_provider_client(provider: str, token: str, base_url: str) -> SCMClient:
         return GitLabClient(token, _resolve_api_base(base_url, normalized))
     if normalized == "bitbucket":
         return BitbucketClient(token, _resolve_api_base(base_url, normalized))
+    if normalized == "slack":
+        return SlackClient(token, _resolve_api_base(base_url, normalized))
     raise ValueError(f"unsupported provider for scm client: {provider}")
 
 
@@ -186,6 +228,8 @@ def _resolve_api_base(base_url: str, provider: str) -> str:
         return "https://gitlab.com/api/v4"
     if provider == "bitbucket":
         return "https://api.bitbucket.org/2.0"
+    if provider == "slack":
+        return "https://slack.com/api"
     return trimmed
 
 

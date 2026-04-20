@@ -133,6 +133,8 @@ func (s *SCMService) clientForInstallation(
 		return s.tokenClient(ctx, provider, providerCfg, record)
 	case auth.ProviderBitbucket:
 		return s.tokenClient(ctx, provider, providerCfg, record)
+	case auth.ProviderSlack:
+		return s.tokenClient(ctx, provider, providerCfg, record)
 	default:
 		return nil, errors.New("unsupported provider")
 	}
@@ -159,6 +161,8 @@ func (s *SCMService) tokenClient(
 			refreshed, err = oauth.RefreshGitLabToken(ctx, providerCfg, record.RefreshToken)
 		case auth.ProviderBitbucket:
 			refreshed, err = oauth.RefreshBitbucketToken(ctx, providerCfg, record.RefreshToken)
+		case auth.ProviderSlack:
+			refreshed, err = oauth.RefreshSlackToken(ctx, providerCfg, record.RefreshToken)
 		default:
 			err = errors.New("unsupported provider for refresh")
 		}
@@ -194,6 +198,8 @@ func resolveAPIBase(provider string, cfg auth.ProviderConfig) string {
 		return "https://gitlab.com/api/v4"
 	case auth.ProviderBitbucket:
 		return "https://api.bitbucket.org/2.0"
+	case auth.ProviderSlack:
+		return "https://slack.com/api"
 	default:
 		return ""
 	}

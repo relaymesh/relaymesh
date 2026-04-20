@@ -11,6 +11,7 @@ from .scm_clients import (
     BitbucketClientFromEvent,
     GitHubClientFromEvent,
     GitLabClientFromEvent,
+    SlackClientFromEvent,
     new_provider_client,
 )
 
@@ -117,6 +118,10 @@ def GitLabClient(evt: object):
 
 def BitbucketClient(evt: object):
     return BitbucketClientFromEvent(evt)
+
+
+def SlackClient(evt: object):
+    return SlackClientFromEvent(evt)
 
 
 @dataclass

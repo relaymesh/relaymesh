@@ -117,6 +117,42 @@ export class BitbucketClient implements SCMClient {
   }
 }
 
+export class SlackClient implements SCMClient {
+  constructor(private readonly token: string, private readonly baseUrl: string) {}
+
+  async request(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ): Promise<Response> {
+    const url = resolveURL(this.baseUrl, path);
+    return fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async requestJSON<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers?: Record<string, string>,
+  ): Promise<T> {
+    const resp = await this.request(method, path, body, headers);
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`slack request failed (${resp.status}): ${text}`);
+    }
+    return resp.json() as Promise<T>;
+  }
+}
+
 export function GitHubClientFromEvent(evt: { client?: unknown }): GitHubClient | undefined {
   return evt?.client instanceof GitHubClient ? evt.client : undefined;
 }
@@ -129,6 +165,10 @@ export function BitbucketClientFromEvent(evt: { client?: unknown }): BitbucketCl
   return evt?.client instanceof BitbucketClient ? evt.client : undefined;
 }
 
+export function SlackClientFromEvent(evt: { client?: unknown }): SlackClient | undefined {
+  return evt?.client instanceof SlackClient ? evt.client : undefined;
+}
+
 export function newProviderClient(provider: string, token: string, baseUrl: string): SCMClient {
   const normalized = (provider ?? "").trim().toLowerCase();
   switch (normalized) {
@@ -138,6 +178,8 @@ export function newProviderClient(provider: string, token: string, baseUrl: stri
       return new GitLabClient(token, resolveAPIBase(baseUrl, normalized));
     case "bitbucket":
       return new BitbucketClient(token, resolveAPIBase(baseUrl, normalized));
+    case "slack":
+      return new SlackClient(token, resolveAPIBase(baseUrl, normalized));
     default:
       throw new Error(`unsupported provider for scm client: ${provider}`);
   }
@@ -159,6 +201,8 @@ function resolveAPIBase(baseUrl: string, provider: string): string {
       return "https://gitlab.com/api/v4";
     case "bitbucket":
       return "https://api.bitbucket.org/2.0";
+    case "slack":
+      return "https://slack.com/api";
     default:
       return trimmed;
   }

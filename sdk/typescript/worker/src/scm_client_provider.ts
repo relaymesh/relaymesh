@@ -1,6 +1,6 @@
 import { SCMClientsClient } from "./api.js";
 import { MetadataKeyInstallationID, MetadataKeyProviderInstanceKey } from "./metadata.js";
-import { newProviderClient, GitHubClientFromEvent, GitLabClientFromEvent, BitbucketClientFromEvent } from "./scm_clients.js";
+import { newProviderClient, GitHubClientFromEvent, GitLabClientFromEvent, BitbucketClientFromEvent, SlackClientFromEvent } from "./scm_clients.js";
 import { resolveOAuth2Config } from "./oauth2.js";
 import type { APIClientOptions } from "./api.js";
 import type { ClientProvider } from "./client.js";
@@ -104,6 +104,10 @@ export function GitLabClient(evt: { client?: unknown }) {
 
 export function BitbucketClient(evt: { client?: unknown }) {
   return BitbucketClientFromEvent(evt);
+}
+
+export function SlackClient(evt: { client?: unknown }) {
+  return SlackClientFromEvent(evt);
 }
 
 class SCMClientCache {

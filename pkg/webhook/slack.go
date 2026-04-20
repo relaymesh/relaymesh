@@ -94,6 +94,7 @@ func (h *SlackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	rawObject, normalized := annotatePayload(rawObject, data, auth.ProviderSlack, eventName)
 	tenantID, stateID, installationID, instanceKey := h.resolveStateID(r.Context(), data)
+	namespaceID, namespaceName := slackNamespaceInfo(data)
 	ctx := r.Context()
 	if tenantID != "" {
 		ctx = storage.WithTenant(ctx, tenantID)
@@ -118,9 +119,11 @@ func (h *SlackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		RawPayload:          rawBody,
 		RawObject:           rawObject,
 		StateID:             stateID,
-		TenantID:            storage.TenantFromContext(r.Context()),
+		TenantID:            tenantID,
 		InstallationID:      installationID,
 		ProviderInstanceKey: instanceKey,
+		NamespaceID:         namespaceID,
+		NamespaceName:       namespaceName,
 	})
 
 	w.WriteHeader(http.StatusOK)
@@ -179,6 +182,8 @@ func (h *SlackHandler) resolveStateID(ctx context.Context, data map[string]inter
 	if teamID == "" || h.installStore == nil {
 		return "", teamID, "", ""
 	}
+	preferredTenant := storage.TenantFromContext(ctx)
+	appID := dataString(data, "api_app_id")
 	installations, err := h.installStore.ListInstallations(ctx, auth.ProviderSlack, teamID)
 	if err != nil || len(installations) == 0 {
 		installations, err = h.installStore.ListInstallations(context.Background(), auth.ProviderSlack, teamID)
@@ -186,18 +191,80 @@ func (h *SlackHandler) resolveStateID(ctx context.Context, data map[string]inter
 			return "", teamID, "", ""
 		}
 	}
-	latest := pickLatestInstallation(installations)
+	latest := pickBestSlackInstallation(installations, preferredTenant, appID)
 	return latest.TenantID, teamID, latest.InstallationID, latest.ProviderInstanceKey
 }
 
-func pickLatestInstallation(records []storage.InstallRecord) storage.InstallRecord {
-	latest := records[0]
-	for i := 1; i < len(records); i++ {
-		if records[i].UpdatedAt.After(latest.UpdatedAt) {
-			latest = records[i]
+func slackNamespaceInfo(data map[string]interface{}) (string, string) {
+	channelID := dataString(data, "event.channel", "channel_id", "channel.id")
+	channelName := dataString(data, "event.channel_name", "channel_name", "channel.name")
+	if channelName == "" {
+		channelName = channelID
+	}
+	return channelID, channelName
+}
+
+func pickBestSlackInstallation(records []storage.InstallRecord, preferredTenant, appID string) storage.InstallRecord {
+	preferredTenant = strings.TrimSpace(preferredTenant)
+	appID = strings.TrimSpace(appID)
+
+	candidates := records
+	if appID != "" {
+		byApp := make([]storage.InstallRecord, 0, len(records))
+		for _, record := range records {
+			if slackInstallationAppID(record) == appID {
+				byApp = append(byApp, record)
+			}
+		}
+		if len(byApp) > 0 {
+			candidates = byApp
+		}
+	}
+	if preferredTenant != "" {
+		byTenant := make([]storage.InstallRecord, 0, len(candidates))
+		for _, record := range candidates {
+			if strings.TrimSpace(record.TenantID) == preferredTenant {
+				byTenant = append(byTenant, record)
+			}
+		}
+		if len(byTenant) > 0 {
+			candidates = byTenant
+		}
+	} else {
+		// For webhook requests that do not carry tenant context, prefer installations
+		// that are explicitly tenant-bound over legacy global records.
+		nonEmptyTenant := make([]storage.InstallRecord, 0, len(candidates))
+		for _, record := range candidates {
+			if strings.TrimSpace(record.TenantID) != "" {
+				nonEmptyTenant = append(nonEmptyTenant, record)
+			}
+		}
+		if len(nonEmptyTenant) > 0 {
+			candidates = nonEmptyTenant
+		}
+	}
+
+	latest := candidates[0]
+	for i := 1; i < len(candidates); i++ {
+		if candidates[i].UpdatedAt.After(latest.UpdatedAt) {
+			latest = candidates[i]
 		}
 	}
 	return latest
+}
+
+func slackInstallationAppID(record storage.InstallRecord) string {
+	if strings.TrimSpace(record.MetadataJSON) == "" {
+		return ""
+	}
+	var metadata map[string]interface{}
+	if err := json.Unmarshal([]byte(record.MetadataJSON), &metadata); err != nil {
+		return ""
+	}
+	if metadata["app_id"] == nil {
+		return ""
+	}
+	return strings.TrimSpace(fmt.Sprintf("%v", metadata["app_id"]))
 }
 
 func (h *SlackHandler) matchRules(ctx context.Context, event core.Event, tenantID string, logger *log.Logger) []core.MatchedRule {

@@ -20,16 +20,19 @@ export {
   GitHubClient,
   GitLabClient,
   BitbucketClient,
+  SlackClient,
 } from "./scm_client_provider.js";
 
 export {
   GitHubClientFromEvent,
   GitLabClientFromEvent,
   BitbucketClientFromEvent,
+  SlackClientFromEvent,
   newProviderClient,
   NewProviderClient,
   GitHubClient as GitHubSCMClient,
   GitLabClient as GitLabSCMClient,
   BitbucketClient as BitbucketSCMClient,
+  SlackClient as SlackSCMClient,
   type SCMClient,
 } from "./scm_clients.js";

@@ -11,6 +11,7 @@ import (
 
 	"github.com/relaymesh/relaymesh/pkg/auth"
 	"github.com/relaymesh/relaymesh/pkg/core"
+	"github.com/relaymesh/relaymesh/pkg/storage"
 )
 
 type slackCapturePublisher struct {
@@ -92,5 +93,19 @@ func TestSlackHandlerPublishesMatches(t *testing.T) {
 	}
 	if pub.events[0].ProviderType == "" {
 		t.Fatalf("expected normalized provider type")
+	}
+}
+
+func TestPickBestSlackInstallation(t *testing.T) {
+	now := time.Now().UTC()
+	records := []storage.InstallRecord{
+		{TenantID: "tenant-a", InstallationID: "T1", UpdatedAt: now.Add(-2 * time.Minute), MetadataJSON: `{"app_id":"A1"}`},
+		{TenantID: "tenant-b", InstallationID: "T1", UpdatedAt: now.Add(-1 * time.Minute), MetadataJSON: `{"app_id":"A2"}`},
+		{TenantID: "tenant-a", InstallationID: "T1", UpdatedAt: now, MetadataJSON: `{"app_id":"A2"}`},
+	}
+
+	best := pickBestSlackInstallation(records, "tenant-a", "A2")
+	if best.TenantID != "tenant-a" || best.UpdatedAt != now {
+		t.Fatalf("unexpected best installation: %+v", best)
 	}
 }

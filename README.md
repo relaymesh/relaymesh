@@ -256,6 +256,8 @@ def handler(ctx, evt):
         GitLabClient(evt)
     elif provider == "bitbucket":
         BitbucketClient(evt)
+    elif provider == "slack":
+        SlackClient(evt)
 
 wk.HandleRule("<rule-id>", handler)
 
