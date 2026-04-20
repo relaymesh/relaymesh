@@ -83,19 +83,11 @@ func (h *StartHandler) resolveProviderConfig(ctx context.Context, provider, inst
 	instanceKey = strings.TrimSpace(instanceKey)
 
 	if instanceKey != "" {
-		if h.ProviderInstanceCache != nil {
-			if cfg, ok, err := h.ProviderInstanceCache.ConfigFor(ctx, provider, instanceKey); err == nil && ok {
-				return cfg, instanceKey
-			}
+		if cfg, ok := h.lookupProviderInstanceConfig(ctx, provider, instanceKey); ok {
+			return cfg, instanceKey
 		}
-		if h.ProviderInstanceStore != nil {
-			record, err := h.ProviderInstanceStore.GetProviderInstance(ctx, provider, instanceKey)
-			if err == nil && record != nil {
-				cfg, err := providerinstance.ProviderConfigFromRecord(*record)
-				if err == nil {
-					return cfg, instanceKey
-				}
-			}
+		if cfg, ok := h.lookupProviderInstanceConfig(context.Background(), provider, instanceKey); ok {
+			return cfg, instanceKey
 		}
 		return fallback, instanceKey
 	}
@@ -111,6 +103,24 @@ func (h *StartHandler) resolveProviderConfig(ctx context.Context, provider, inst
 	}
 
 	return fallback, ""
+}
+
+func (h *StartHandler) lookupProviderInstanceConfig(ctx context.Context, provider, instanceKey string) (auth.ProviderConfig, bool) {
+	if h.ProviderInstanceCache != nil {
+		if cfg, ok, err := h.ProviderInstanceCache.ConfigFor(ctx, provider, instanceKey); err == nil && ok {
+			return cfg, true
+		}
+	}
+	if h.ProviderInstanceStore != nil {
+		record, err := h.ProviderInstanceStore.GetProviderInstance(ctx, provider, instanceKey)
+		if err == nil && record != nil {
+			cfg, err := providerinstance.ProviderConfigFromRecord(*record)
+			if err == nil {
+				return cfg, true
+			}
+		}
+	}
+	return auth.ProviderConfig{}, false
 }
 
 func githubInstallURL(cfg auth.ProviderConfig, state string) (string, error) {

@@ -85,13 +85,25 @@ func (h *Handler) resolveInstanceConfig(ctx context.Context, provider, instanceK
 			}
 			return cfg, instanceKey, ""
 		}
+		if cfg, ok, err := h.ProviderInstanceCache.ConfigFor(context.Background(), provider, instanceKey); err == nil && ok {
+			if h.ProviderInstanceStore != nil {
+				record, err := h.ProviderInstanceStore.GetProviderInstance(context.Background(), provider, instanceKey)
+				if err == nil && record != nil {
+					return cfg, instanceKey, record.RedirectBaseURL
+				}
+			}
+			return cfg, instanceKey, ""
+		}
 	}
 	if h.ProviderInstanceStore == nil {
 		return fallback, instanceKey, ""
 	}
 	record, err := h.ProviderInstanceStore.GetProviderInstance(ctx, provider, instanceKey)
 	if err != nil || record == nil {
-		return fallback, instanceKey, ""
+		record, err = h.ProviderInstanceStore.GetProviderInstance(context.Background(), provider, instanceKey)
+		if err != nil || record == nil {
+			return fallback, instanceKey, ""
+		}
 	}
 	cfg, err := providerinstance.ProviderConfigFromRecord(*record)
 	if err != nil {

@@ -100,7 +100,6 @@ func (h *SlackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r = r.WithContext(ctx)
 	}
 
-	namespaceID, namespaceName := slackNamespaceInfo(data)
 	h.emit(r, logger, core.Event{
 		Provider:            auth.ProviderSlack,
 		ProviderType:        normalized.ProviderType,
@@ -122,8 +121,6 @@ func (h *SlackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		TenantID:            storage.TenantFromContext(r.Context()),
 		InstallationID:      installationID,
 		ProviderInstanceKey: instanceKey,
-		NamespaceID:         namespaceID,
-		NamespaceName:       namespaceName,
 	})
 
 	w.WriteHeader(http.StatusOK)
@@ -177,15 +174,6 @@ func slackEventName(headers http.Header, data map[string]interface{}) string {
 	return "event"
 }
 
-func slackNamespaceInfo(data map[string]interface{}) (string, string) {
-	channelID := dataString(data, "event.channel", "channel_id", "channel.id")
-	channelName := dataString(data, "event.channel_name", "channel_name", "channel.name")
-	if channelName == "" {
-		channelName = channelID
-	}
-	return channelID, channelName
-}
-
 func (h *SlackHandler) resolveStateID(ctx context.Context, data map[string]interface{}) (string, string, string, string) {
 	teamID := dataString(data, "team_id", "team.id", "authorizations.0.team_id")
 	if teamID == "" || h.installStore == nil {
@@ -193,15 +181,23 @@ func (h *SlackHandler) resolveStateID(ctx context.Context, data map[string]inter
 	}
 	installations, err := h.installStore.ListInstallations(ctx, auth.ProviderSlack, teamID)
 	if err != nil || len(installations) == 0 {
-		return "", teamID, "", ""
-	}
-	latest := installations[0]
-	for i := 1; i < len(installations); i++ {
-		if installations[i].UpdatedAt.After(latest.UpdatedAt) {
-			latest = installations[i]
+		installations, err = h.installStore.ListInstallations(context.Background(), auth.ProviderSlack, teamID)
+		if err != nil || len(installations) == 0 {
+			return "", teamID, "", ""
 		}
 	}
+	latest := pickLatestInstallation(installations)
 	return latest.TenantID, teamID, latest.InstallationID, latest.ProviderInstanceKey
+}
+
+func pickLatestInstallation(records []storage.InstallRecord) storage.InstallRecord {
+	latest := records[0]
+	for i := 1; i < len(records); i++ {
+		if records[i].UpdatedAt.After(latest.UpdatedAt) {
+			latest = records[i]
+		}
+	}
+	return latest
 }
 
 func (h *SlackHandler) matchRules(ctx context.Context, event core.Event, tenantID string, logger *log.Logger) []core.MatchedRule {
