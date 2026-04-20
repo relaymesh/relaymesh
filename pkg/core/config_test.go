@@ -34,6 +34,12 @@ func TestLoadConfigDefaults(t *testing.T) {
 	if cfg.Providers.Slack.Webhook.Path != "/webhooks/slack" {
 		t.Fatalf("expected default slack path, got %q", cfg.Providers.Slack.Webhook.Path)
 	}
+	if cfg.Providers.Atlassian.Webhook.Path != "/webhooks/atlassian" {
+		t.Fatalf("expected default atlassian path, got %q", cfg.Providers.Atlassian.Webhook.Path)
+	}
+	if cfg.Providers.Jira.Webhook.Path != "/webhooks/atlassian" {
+		t.Fatalf("expected jira alias path, got %q", cfg.Providers.Jira.Webhook.Path)
+	}
 	if cfg.Relaybus.Driver != "" {
 		t.Fatalf("expected empty default relaybus driver, got %q", cfg.Relaybus.Driver)
 	}

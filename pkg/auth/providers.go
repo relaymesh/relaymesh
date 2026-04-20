@@ -7,12 +7,17 @@ const (
 	ProviderGitLab    = "gitlab"
 	ProviderBitbucket = "bitbucket"
 	ProviderSlack     = "slack"
+	ProviderAtlassian = "atlassian"
+	ProviderJira      = "jira"
 )
 
 // NormalizeProviderName normalizes provider identifiers for comparisons.
 func NormalizeProviderName(provider string) string {
 	provider = strings.ToLower(strings.TrimSpace(provider))
 	provider = strings.ReplaceAll(provider, "-", "_")
+	if provider == ProviderJira {
+		return ProviderAtlassian
+	}
 	return provider
 }
 

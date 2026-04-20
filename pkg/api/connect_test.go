@@ -383,6 +383,8 @@ func TestConnectHelperCoverage(t *testing.T) {
 			GitLab:    auth.ProviderConfig{Key: "gl"},
 			Bitbucket: auth.ProviderConfig{Key: "bb"},
 			Slack:     auth.ProviderConfig{Key: "sl"},
+			Atlassian: auth.ProviderConfig{Key: "at"},
+			Jira:      auth.ProviderConfig{Key: "jr"},
 		}
 
 		if got := providerConfigFromAuthConfig(cfg, "github"); got.Key != "gh" {
@@ -396,6 +398,12 @@ func TestConnectHelperCoverage(t *testing.T) {
 		}
 		if got := providerConfigFromAuthConfig(cfg, "slack"); got.Key != "sl" {
 			t.Fatalf("expected slack config")
+		}
+		if got := providerConfigFromAuthConfig(cfg, "atlassian"); got.Key != "at" {
+			t.Fatalf("expected atlassian config")
+		}
+		if got := providerConfigFromAuthConfig(cfg, "jira"); got.Key != "at" {
+			t.Fatalf("expected jira alias to resolve atlassian config")
 		}
 		if got := providerConfigFromAuthConfig(cfg, "unknown"); got.Key != "gh" {
 			t.Fatalf("expected fallback github config")

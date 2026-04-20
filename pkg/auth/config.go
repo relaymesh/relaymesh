@@ -6,6 +6,8 @@ type Config struct {
 	GitLab    ProviderConfig            `yaml:"gitlab"`
 	Bitbucket ProviderConfig            `yaml:"bitbucket"`
 	Slack     ProviderConfig            `yaml:"slack"`
+	Atlassian ProviderConfig            `yaml:"atlassian"`
+	Jira      ProviderConfig            `yaml:"jira"`
 	Extra     map[string]ProviderConfig `yaml:"extra"`
 }
 
@@ -21,6 +23,16 @@ func (c Config) ProviderConfigFor(provider string) (ProviderConfig, bool) {
 		return c.Bitbucket, true
 	case ProviderSlack:
 		return c.Slack, true
+	case ProviderAtlassian:
+		if providerConfigSet(c.Atlassian) {
+			return c.Atlassian, true
+		}
+		return c.Jira, providerConfigSet(c.Jira)
+	case ProviderJira:
+		if providerConfigSet(c.Atlassian) {
+			return c.Atlassian, true
+		}
+		return c.Jira, providerConfigSet(c.Jira)
 	default:
 		if c.Extra == nil {
 			return ProviderConfig{}, false
@@ -35,6 +47,25 @@ func (c Config) ProviderConfigFor(provider string) (ProviderConfig, bool) {
 		}
 		return ProviderConfig{}, false
 	}
+}
+
+func providerConfigSet(cfg ProviderConfig) bool {
+	if cfg.Enabled {
+		return true
+	}
+	if cfg.Key != "" || cfg.Webhook.Path != "" || cfg.Webhook.Secret != "" {
+		return true
+	}
+	if cfg.App.AppID != 0 || cfg.App.PrivateKeyPath != "" || cfg.App.PrivateKeyPEM != "" || cfg.App.AppSlug != "" {
+		return true
+	}
+	if cfg.OAuth.ClientID != "" || cfg.OAuth.ClientSecret != "" || len(cfg.OAuth.Scopes) > 0 {
+		return true
+	}
+	if cfg.API.BaseURL != "" || cfg.API.WebBaseURL != "" {
+		return true
+	}
+	return false
 }
 
 // ProviderConfig contains webhook and auth configuration for a provider.

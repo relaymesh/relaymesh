@@ -8,9 +8,11 @@ from .client import ClientProvider
 from .metadata import METADATA_KEY_INSTALLATION_ID, METADATA_KEY_PROVIDER_INSTANCE_KEY
 from .oauth2 import OAuth2Config, resolve_oauth2_config
 from .scm_clients import (
+    AtlassianClientFromEvent,
     BitbucketClientFromEvent,
     GitHubClientFromEvent,
     GitLabClientFromEvent,
+    JiraClientFromEvent,
     SlackClientFromEvent,
     new_provider_client,
 )
@@ -122,6 +124,14 @@ def BitbucketClient(evt: object):
 
 def SlackClient(evt: object):
     return SlackClientFromEvent(evt)
+
+
+def JiraClient(evt: object):
+    return JiraClientFromEvent(evt)
+
+
+def AtlassianClient(evt: object):
+    return AtlassianClientFromEvent(evt)
 
 
 @dataclass

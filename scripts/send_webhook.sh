@@ -3,7 +3,7 @@ set -eu
 
 usage() {
   echo "Usage: $0 <provider> <event> <payload.json>" >&2
-  echo "Providers: github | gitlab | bitbucket" >&2
+  echo "Providers: github | gitlab | bitbucket | slack | atlassian" >&2
   exit 1
 }
 
@@ -48,6 +48,27 @@ case "$provider" in
     curl -X POST http://localhost:8080/webhooks/bitbucket \
       $headers \
       -H "Content-Type: application/json" \
+      -d "$body"
+    ;;
+  slack)
+    headers="-H Content-Type: application/json"
+    if [ -n "${SLACK_WEBHOOK_SECRET:-}" ]; then
+      ts=$(date +%s)
+      sig=$(printf 'v0:%s:%s' "$ts" "$body" | openssl dgst -sha256 -hmac "$SLACK_WEBHOOK_SECRET" | sed 's/^.* //')
+      headers="$headers -H X-Slack-Request-Timestamp: $ts -H X-Slack-Signature: v0=$sig"
+    fi
+    curl -X POST http://localhost:8080/webhooks/slack \
+      $headers \
+      -d "$body"
+    ;;
+  atlassian|jira)
+    headers="-H Content-Type: application/json"
+    if [ -n "${ATLASSIAN_WEBHOOK_SECRET:-}" ]; then
+      sig=$(printf '%s' "$body" | openssl dgst -sha256 -hmac "$ATLASSIAN_WEBHOOK_SECRET" | sed 's/^.* //')
+      headers="$headers -H X-Hub-Signature-256: sha256=$sig"
+    fi
+    curl -X POST http://localhost:8080/webhooks/atlassian \
+      $headers \
       -d "$body"
     ;;
   *)

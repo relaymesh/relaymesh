@@ -70,4 +70,10 @@ func TestOAuthDefaultRegistry(t *testing.T) {
 	if _, ok := r.Provider("slack"); !ok {
 		t.Fatalf("expected slack provider")
 	}
+	if _, ok := r.Provider("atlassian"); !ok {
+		t.Fatalf("expected atlassian provider")
+	}
+	if _, ok := r.Provider("jira"); !ok {
+		t.Fatalf("expected jira provider")
+	}
 }

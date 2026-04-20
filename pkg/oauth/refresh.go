@@ -188,3 +188,60 @@ func RefreshSlackToken(ctx context.Context, cfg auth.ProviderConfig, refreshToke
 	}
 	return out, nil
 }
+
+// RefreshJiraToken refreshes an Atlassian OAuth token.
+func RefreshJiraToken(ctx context.Context, cfg auth.ProviderConfig, refreshToken string) (TokenResult, error) {
+	if refreshToken == "" {
+		return TokenResult{}, errors.New("jira refresh token missing")
+	}
+	if cfg.OAuth.ClientID == "" || cfg.OAuth.ClientSecret == "" {
+		return TokenResult{}, errors.New("jira oauth client config missing")
+	}
+	baseURL := strings.TrimRight(cfg.API.BaseURL, "/")
+	if baseURL == "" {
+		baseURL = "https://auth.atlassian.com"
+	}
+	endpoint := baseURL + "/oauth/token"
+
+	payload := map[string]string{
+		"grant_type":    "refresh_token",
+		"client_id":     cfg.OAuth.ClientID,
+		"client_secret": cfg.OAuth.ClientSecret,
+		"refresh_token": refreshToken,
+	}
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return TokenResult{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(string(raw)))
+	if err != nil {
+		return TokenResult{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return TokenResult{}, err
+	}
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("jira token refresh close failed: %v", err)
+		}
+	}()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return TokenResult{}, fmt.Errorf("jira token refresh failed: %s", resp.Status)
+	}
+	var token oauthToken
+	if err := json.NewDecoder(resp.Body).Decode(&token); err != nil {
+		return TokenResult{}, err
+	}
+	token.ExpiresAt = expiryFromToken(token)
+	if token.AccessToken == "" {
+		return TokenResult{}, errors.New("jira access token missing")
+	}
+	out := TokenResult{AccessToken: token.AccessToken, RefreshToken: token.RefreshToken, ExpiresAt: token.ExpiresAt}
+	if out.RefreshToken == "" {
+		out.RefreshToken = refreshToken
+	}
+	return out, nil
+}

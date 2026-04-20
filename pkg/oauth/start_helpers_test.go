@@ -50,6 +50,13 @@ func TestStartURLHelpers(t *testing.T) {
 		t.Fatalf("expected slack authorize url")
 	}
 
+	if url, err := jiraAuthorizeURL(auth.ProviderConfig{}, "state", "https://callback"); err == nil || url != "" {
+		t.Fatalf("expected jira authorize error")
+	}
+	if url, err := jiraAuthorizeURL(auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id", Scopes: []string{"read:jira-user", "read:jira-work"}}}, "state", "https://callback"); err != nil || url == "" {
+		t.Fatalf("expected jira authorize url")
+	}
+
 	if got, err := addQueryParam("https://example.com/x", "state", ""); err != nil || got != "https://example.com/x" {
 		t.Fatalf("unexpected addQueryParam empty value result: %q err=%v", got, err)
 	}

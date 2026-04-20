@@ -16,6 +16,8 @@ type bitbucketProvider struct{}
 
 type slackProvider struct{}
 
+type atlassianProvider struct{}
+
 // DefaultRegistry registers the built-in webhook providers.
 func DefaultRegistry() *Registry {
 	registry := NewRegistry()
@@ -23,6 +25,7 @@ func DefaultRegistry() *Registry {
 	_ = registry.Register(gitLabProvider{})
 	_ = registry.Register(bitbucketProvider{})
 	_ = registry.Register(slackProvider{})
+	_ = registry.Register(atlassianProvider{})
 	return registry
 }
 
@@ -163,6 +166,41 @@ func (slackProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) (h
 }
 
 func (slackProvider) WebhookLogFields(cfg auth.ProviderConfig) string {
+	_ = cfg
+	return ""
+}
+
+func (atlassianProvider) Name() string {
+	return "atlassian"
+}
+
+func (atlassianProvider) Definition() providerspkg.Definition {
+	def, _ := providerspkg.DefinitionFor("atlassian")
+	return def
+}
+
+func (atlassianProvider) WebhookPath(cfg auth.ProviderConfig) string {
+	return cfg.Webhook.Path
+}
+
+func (atlassianProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) (http.Handler, error) {
+	return NewJiraHandler(
+		cfg.Webhook.Secret,
+		opts.Rules,
+		opts.Publisher,
+		opts.Logger,
+		opts.MaxBodyBytes,
+		opts.DebugEvents,
+		opts.InstallStore,
+		opts.EventLogStore,
+		opts.RuleStore,
+		opts.DriverStore,
+		opts.RulesStrict,
+		opts.DynamicDriverCache,
+	)
+}
+
+func (atlassianProvider) WebhookLogFields(cfg auth.ProviderConfig) string {
 	_ = cfg
 	return ""
 }

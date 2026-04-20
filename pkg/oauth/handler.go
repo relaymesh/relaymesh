@@ -46,6 +46,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			config = h.Providers.Bitbucket
 		case "slack":
 			config = h.Providers.Slack
+		case "atlassian":
+			config = h.Providers.Atlassian
+		case "jira":
+			if providerCfg, ok := h.Providers.ProviderConfigFor("atlassian"); ok {
+				config = providerCfg
+			} else {
+				config = h.Providers.Jira
+			}
 		}
 	}
 
@@ -58,6 +66,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleGitHubApp(w, r, logger, config)
 	case "slack":
 		h.handleSlack(w, r, logger, config)
+	case "atlassian":
+		h.handleJira(w, r, logger, config)
+	case "jira":
+		h.handleJira(w, r, logger, config)
 	default:
 		http.Error(w, "unsupported provider", http.StatusBadRequest)
 	}

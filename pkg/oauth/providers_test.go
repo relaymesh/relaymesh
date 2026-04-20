@@ -43,4 +43,20 @@ func TestOAuthProviderMetadata(t *testing.T) {
 	if url, err := sl.AuthorizeURL(req, auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id"}}, "state", ""); err != nil || url == "" {
 		t.Fatalf("expected slack authorize url")
 	}
+
+	jr := jiraProvider{}
+	if jr.Name() != "jira" || jr.CallbackPath() != "/auth/jira/callback" {
+		t.Fatalf("unexpected jira provider metadata")
+	}
+	if url, err := jr.AuthorizeURL(req, auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id"}}, "state", ""); err != nil || url == "" {
+		t.Fatalf("expected jira authorize url")
+	}
+
+	at := atlassianProvider{}
+	if at.Name() != "atlassian" || at.CallbackPath() != "/auth/atlassian/callback" {
+		t.Fatalf("unexpected atlassian provider metadata")
+	}
+	if url, err := at.AuthorizeURL(req, auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id"}}, "state", ""); err != nil || url == "" {
+		t.Fatalf("expected atlassian authorize url")
+	}
 }

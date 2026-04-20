@@ -11,7 +11,7 @@ import (
 
 // RecordsFromConfig converts provider config into instance records.
 func RecordsFromConfig(cfg auth.Config) ([]storage.ProviderInstanceRecord, error) {
-	out := make([]storage.ProviderInstanceRecord, 0, 3)
+	out := make([]storage.ProviderInstanceRecord, 0, 6)
 	if record, ok, err := instanceRecordFromConfig("github", cfg.GitHub); err != nil {
 		return nil, err
 	} else if ok {
@@ -25,6 +25,21 @@ func RecordsFromConfig(cfg auth.Config) ([]storage.ProviderInstanceRecord, error
 	if record, ok, err := instanceRecordFromConfig("bitbucket", cfg.Bitbucket); err != nil {
 		return nil, err
 	} else if ok {
+		out = append(out, record)
+	}
+	if record, ok, err := instanceRecordFromConfig("slack", cfg.Slack); err != nil {
+		return nil, err
+	} else if ok {
+		out = append(out, record)
+	}
+	if record, ok, err := instanceRecordFromConfig("atlassian", cfg.Atlassian); err != nil {
+		return nil, err
+	} else if ok {
+		out = append(out, record)
+	} else if record, ok, err := instanceRecordFromConfig("jira", cfg.Jira); err != nil {
+		return nil, err
+	} else if ok {
+		record.Provider = "atlassian"
 		out = append(out, record)
 	}
 	return out, nil

@@ -1,6 +1,6 @@
 # SDK Client Injection
 
-Workers can attach provider clients (GitHub/GitLab/Bitbucket/Slack) to each event. The default approach is to ask the server for credentials and build clients locally with a small LRU cache.
+Workers can attach provider clients (GitHub/GitLab/Bitbucket/Slack/Atlassian) to each event. The default approach is to ask the server for credentials and build clients locally with a small LRU cache.
 
 ## When to use each approach
 
@@ -37,6 +37,10 @@ wk.HandleRule("<rule-id>", func(ctx context.Context, evt *worker.Event) error {
     if sl, ok := worker.SlackClient(evt); ok {
       _, _ = sl.RequestJSON(ctx, "GET", "/auth.test", nil, nil)
     }
+  case "atlassian":
+    if at, ok := worker.AtlassianClient(evt); ok {
+      _, _ = at.RequestJSON(ctx, "GET", "/rest/api/3/myself", nil, nil)
+    }
   }
   return nil
 })
@@ -54,6 +58,7 @@ import {
   GitLabClient,
   BitbucketClient,
   SlackClient,
+  AtlassianClient,
 } from "@relaymesh/sdk";
 
 const worker = New(
@@ -83,6 +88,11 @@ worker.HandleRule("<rule-id>", async (_ctx, evt) => {
       if (sl) await sl.requestJSON("GET", "/auth.test");
       break;
     }
+    case "atlassian": {
+      const at = AtlassianClient(evt);
+      if (at) await at.requestJSON("GET", "/rest/api/3/myself");
+      break;
+    }
   }
 });
 ```
@@ -101,6 +111,7 @@ from relaymesh import (
     GitLabClient,
     BitbucketClient,
     SlackClient,
+    AtlassianClient,
 )
 
 wk = New(
@@ -118,12 +129,16 @@ def handler(ctx, evt):
         client = BitbucketClient(evt)
     elif provider == "slack":
         client = SlackClient(evt)
+    elif provider == "atlassian":
+        client = AtlassianClient(evt)
     else:
         client = None
 
     if client:
         if provider == "slack":
             client.request_json("GET", "/auth.test")
+        elif provider == "atlassian":
+            client.request_json("GET", "/rest/api/3/myself")
         else:
             client.request_json("GET", "/user")
 

@@ -229,6 +229,12 @@ func applyDefaults(cfg *AppConfig) {
 	if cfg.Providers.Slack.Webhook.Path == "" {
 		cfg.Providers.Slack.Webhook.Path = "/webhooks/slack"
 	}
+	if cfg.Providers.Atlassian.Webhook.Path == "" {
+		cfg.Providers.Atlassian.Webhook.Path = "/webhooks/atlassian"
+	}
+	if cfg.Providers.Jira.Webhook.Path == "" {
+		cfg.Providers.Jira.Webhook.Path = cfg.Providers.Atlassian.Webhook.Path
+	}
 	if cfg.Relaybus.PublishRetry.Attempts == 0 {
 		cfg.Relaybus.PublishRetry.Attempts = 3
 	}

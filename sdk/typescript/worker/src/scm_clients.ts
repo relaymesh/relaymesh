@@ -153,6 +153,45 @@ export class SlackClient implements SCMClient {
   }
 }
 
+export class JiraClient implements SCMClient {
+  constructor(private readonly token: string, private readonly baseUrl: string) {}
+
+  async request(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers: Record<string, string> = {},
+  ): Promise<Response> {
+    const url = resolveURL(this.baseUrl, path);
+    return fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...headers,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async requestJSON<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    headers?: Record<string, string>,
+  ): Promise<T> {
+    const resp = await this.request(method, path, body, headers);
+    if (!resp.ok) {
+      const text = await resp.text().catch(() => "");
+      throw new Error(`jira request failed (${resp.status}): ${text}`);
+    }
+    return resp.json() as Promise<T>;
+  }
+}
+
+export class AtlassianClient extends JiraClient {}
+
 export function GitHubClientFromEvent(evt: { client?: unknown }): GitHubClient | undefined {
   return evt?.client instanceof GitHubClient ? evt.client : undefined;
 }
@@ -169,6 +208,18 @@ export function SlackClientFromEvent(evt: { client?: unknown }): SlackClient | u
   return evt?.client instanceof SlackClient ? evt.client : undefined;
 }
 
+export function JiraClientFromEvent(evt: { client?: unknown }): JiraClient | undefined {
+  return evt?.client instanceof JiraClient ? evt.client : undefined;
+}
+
+export function AtlassianClientFromEvent(evt: { client?: unknown }): AtlassianClient | undefined {
+  const client = evt?.client;
+  if (client instanceof JiraClient || client instanceof AtlassianClient) {
+    return client as AtlassianClient;
+  }
+  return undefined;
+}
+
 export function newProviderClient(provider: string, token: string, baseUrl: string): SCMClient {
   const normalized = (provider ?? "").trim().toLowerCase();
   switch (normalized) {
@@ -180,6 +231,10 @@ export function newProviderClient(provider: string, token: string, baseUrl: stri
       return new BitbucketClient(token, resolveAPIBase(baseUrl, normalized));
     case "slack":
       return new SlackClient(token, resolveAPIBase(baseUrl, normalized));
+    case "jira":
+      return new JiraClient(token, resolveAPIBase(baseUrl, normalized));
+    case "atlassian":
+      return new AtlassianClient(token, resolveAPIBase(baseUrl, normalized));
     default:
       throw new Error(`unsupported provider for scm client: ${provider}`);
   }
@@ -203,6 +258,10 @@ function resolveAPIBase(baseUrl: string, provider: string): string {
       return "https://api.bitbucket.org/2.0";
     case "slack":
       return "https://slack.com/api";
+    case "jira":
+      return "https://api.atlassian.com";
+    case "atlassian":
+      return "https://api.atlassian.com";
     default:
       return trimmed;
   }

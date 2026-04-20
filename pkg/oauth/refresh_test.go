@@ -106,6 +106,40 @@ func TestRefreshSlackToken(t *testing.T) {
 	}
 }
 
+func TestRefreshJiraToken(t *testing.T) {
+	originalTransport := http.DefaultTransport
+	http.DefaultTransport = roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+		payload := map[string]interface{}{
+			"access_token":  "jira-token",
+			"refresh_token": "jira-refresh-new",
+			"expires_in":    120,
+		}
+		raw, _ := json.Marshal(payload)
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Status:     http.StatusText(http.StatusOK),
+			Header:     make(http.Header),
+			Body:       io.NopCloser(bytes.NewReader(raw)),
+		}, nil
+	})
+	t.Cleanup(func() { http.DefaultTransport = originalTransport })
+
+	cfg := auth.ProviderConfig{
+		OAuth: auth.OAuthConfig{ClientID: "id", ClientSecret: "secret"},
+		API:   auth.APIConfig{BaseURL: "https://auth.atlassian.com"},
+	}
+	result, err := RefreshJiraToken(context.Background(), cfg, "jira-refresh-old")
+	if err != nil {
+		t.Fatalf("refresh jira token: %v", err)
+	}
+	if result.AccessToken != "jira-token" || result.RefreshToken != "jira-refresh-new" {
+		t.Fatalf("unexpected token result: %+v", result)
+	}
+	if result.ExpiresAt == nil || result.ExpiresAt.Before(time.Now()) {
+		t.Fatalf("expected expiry")
+	}
+}
+
 type roundTripperFunc func(*http.Request) (*http.Response, error)
 
 func (fn roundTripperFunc) RoundTrip(req *http.Request) (*http.Response, error) {

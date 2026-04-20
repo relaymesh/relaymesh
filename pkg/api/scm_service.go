@@ -135,6 +135,10 @@ func (s *SCMService) clientForInstallation(
 		return s.tokenClient(ctx, provider, providerCfg, record)
 	case auth.ProviderSlack:
 		return s.tokenClient(ctx, provider, providerCfg, record)
+	case auth.ProviderAtlassian:
+		return s.tokenClient(ctx, provider, providerCfg, record)
+	case auth.ProviderJira:
+		return s.tokenClient(ctx, provider, providerCfg, record)
 	default:
 		return nil, errors.New("unsupported provider")
 	}
@@ -163,6 +167,10 @@ func (s *SCMService) tokenClient(
 			refreshed, err = oauth.RefreshBitbucketToken(ctx, providerCfg, record.RefreshToken)
 		case auth.ProviderSlack:
 			refreshed, err = oauth.RefreshSlackToken(ctx, providerCfg, record.RefreshToken)
+		case auth.ProviderAtlassian:
+			refreshed, err = oauth.RefreshJiraToken(ctx, providerCfg, record.RefreshToken)
+		case auth.ProviderJira:
+			refreshed, err = oauth.RefreshJiraToken(ctx, providerCfg, record.RefreshToken)
 		default:
 			err = errors.New("unsupported provider for refresh")
 		}
@@ -200,6 +208,10 @@ func resolveAPIBase(provider string, cfg auth.ProviderConfig) string {
 		return "https://api.bitbucket.org/2.0"
 	case auth.ProviderSlack:
 		return "https://slack.com/api"
+	case auth.ProviderAtlassian:
+		return "https://api.atlassian.com"
+	case auth.ProviderJira:
+		return "https://api.atlassian.com"
 	default:
 		return ""
 	}

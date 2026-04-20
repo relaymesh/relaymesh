@@ -23,6 +23,16 @@ type SlackAPIClient struct {
 	client  *http.Client
 }
 
+// JiraAPIClient is a minimal Jira Cloud API client used by workers.
+type JiraAPIClient struct {
+	token   string
+	baseURL string
+	client  *http.Client
+}
+
+// AtlassianAPIClient is an alias for JiraAPIClient and supports Jira + Confluence APIs.
+type AtlassianAPIClient = JiraAPIClient
+
 // GitHubClient returns the GitHub SDK client from an event, if available.
 func GitHubClient(evt *Event) (*github.Client, bool) {
 	if evt == nil || evt.Client == nil {
@@ -66,6 +76,30 @@ func SlackClient(evt *Event) (*SlackAPIClient, bool) {
 	return SlackClientFromEvent(evt)
 }
 
+// JiraClient returns the Jira client from an event, if available.
+func JiraClient(evt *Event) (*JiraAPIClient, bool) {
+	return JiraClientFromEvent(evt)
+}
+
+// AtlassianClient returns the Atlassian (Jira/Confluence) client from an event, if available.
+func AtlassianClient(evt *Event) (*AtlassianAPIClient, bool) {
+	return JiraClientFromEvent(evt)
+}
+
+// JiraClientFromEvent returns the Jira client from an event, if available.
+func JiraClientFromEvent(evt *Event) (*JiraAPIClient, bool) {
+	if evt == nil || evt.Client == nil {
+		return nil, false
+	}
+	client, ok := evt.Client.(*JiraAPIClient)
+	return client, ok
+}
+
+// AtlassianClientFromEvent returns the Atlassian (Jira/Confluence) client from an event.
+func AtlassianClientFromEvent(evt *Event) (*AtlassianAPIClient, bool) {
+	return JiraClientFromEvent(evt)
+}
+
 func GitHubClientFromEvent(evt *Event) (*github.Client, bool) {
 	return GitHubClient(evt)
 }
@@ -93,6 +127,10 @@ func newProviderClient(provider, token, baseURL string) (interface{}, error) {
 		return newBitbucketClient(token, baseURL)
 	case "slack":
 		return newSlackClient(token, baseURL)
+	case "jira":
+		return newJiraClient(token, baseURL)
+	case "atlassian":
+		return newJiraClient(token, baseURL)
 	default:
 		return nil, errors.New("unsupported provider")
 	}
@@ -158,6 +196,17 @@ func newSlackClient(token, baseURL string) (*SlackAPIClient, error) {
 	}, nil
 }
 
+func newJiraClient(token, baseURL string) (*JiraAPIClient, error) {
+	if strings.TrimSpace(token) == "" {
+		return nil, errors.New("jira token is required")
+	}
+	baseURL = strings.TrimRight(strings.TrimSpace(baseURL), "/")
+	if baseURL == "" {
+		baseURL = defaultJiraAPIBase
+	}
+	return &JiraAPIClient{token: token, baseURL: baseURL, client: &http.Client{}}, nil
+}
+
 // Request performs an authenticated HTTP request against Slack API.
 func (c *SlackAPIClient) Request(ctx context.Context, method, path string, body any, headers map[string]string) (*http.Response, error) {
 	if c == nil {
@@ -212,6 +261,61 @@ func (c *SlackAPIClient) RequestJSON(ctx context.Context, method, path string, b
 	return decoded, nil
 }
 
+// Request performs an authenticated HTTP request against Jira API.
+func (c *JiraAPIClient) Request(ctx context.Context, method, path string, body any, headers map[string]string) (*http.Response, error) {
+	if c == nil {
+		return nil, errors.New("jira client is nil")
+	}
+	url := resolveProviderURL(c.baseURL, path)
+	var payload io.Reader
+	if body != nil {
+		raw, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		payload = strings.NewReader(string(raw))
+	}
+	req, err := http.NewRequestWithContext(ctx, strings.ToUpper(strings.TrimSpace(method)), url, payload)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+c.token)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	httpClient := c.client
+	if httpClient == nil {
+		httpClient = &http.Client{}
+	}
+	return httpClient.Do(req)
+}
+
+// RequestJSON performs an authenticated Jira API request and decodes JSON response.
+func (c *JiraAPIClient) RequestJSON(ctx context.Context, method, path string, body any, headers map[string]string) (map[string]any, error) {
+	resp, err := c.Request(ctx, method, path, body, headers)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("jira request failed: %d %s", resp.StatusCode, strings.TrimSpace(string(raw)))
+	}
+	if len(raw) == 0 {
+		return map[string]any{}, nil
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		return nil, err
+	}
+	return decoded, nil
+}
+
 func resolveProviderURL(baseURL, path string) string {
 	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
 		return path
@@ -244,4 +348,5 @@ const (
 	defaultGitLabAPIBase    = "https://gitlab.com/api/v4"
 	defaultBitbucketAPIBase = "https://api.bitbucket.org/2.0"
 	defaultSlackAPIBase     = "https://slack.com/api"
+	defaultJiraAPIBase      = "https://api.atlassian.com"
 )

@@ -37,6 +37,12 @@ func TestProviderFromPath(t *testing.T) {
 	if provider := providerFromPath("/auth/slack/callback"); provider != "slack" {
 		t.Fatalf("expected slack, got %q", provider)
 	}
+	if provider := providerFromPath("/auth/atlassian/callback"); provider != "atlassian" {
+		t.Fatalf("expected atlassian, got %q", provider)
+	}
+	if provider := providerFromPath("/auth/jira/callback"); provider != "atlassian" {
+		t.Fatalf("expected atlassian alias, got %q", provider)
+	}
 	if provider := providerFromPath("/auth/unknown/callback"); provider != "" {
 		t.Fatalf("expected empty provider, got %q", provider)
 	}

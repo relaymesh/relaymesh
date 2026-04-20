@@ -213,6 +213,36 @@ func slackAuthorizeURL(cfg auth.ProviderConfig, state, redirectURL string) (stri
 	return u.String(), nil
 }
 
+func jiraAuthorizeURL(cfg auth.ProviderConfig, state, redirectURL string) (string, error) {
+	if cfg.OAuth.ClientID == "" {
+		return "", fmt.Errorf("jira oauth_client_id is required")
+	}
+	authorizeBase := strings.TrimRight(cfg.API.WebBaseURL, "/")
+	if authorizeBase == "" {
+		authorizeBase = "https://auth.atlassian.com"
+	}
+	u, err := url.Parse(authorizeBase + "/authorize")
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	q.Set("audience", "api.atlassian.com")
+	q.Set("client_id", cfg.OAuth.ClientID)
+	q.Set("response_type", "code")
+	q.Set("prompt", "consent")
+	if redirectURL != "" {
+		q.Set("redirect_uri", redirectURL)
+	}
+	if len(cfg.OAuth.Scopes) > 0 {
+		q.Set("scope", strings.Join(cfg.OAuth.Scopes, " "))
+	}
+	if state != "" {
+		q.Set("state", state)
+	}
+	u.RawQuery = q.Encode()
+	return u.String(), nil
+}
+
 func githubWebBase(cfg auth.ProviderConfig) string {
 	webBase := strings.TrimRight(cfg.API.WebBaseURL, "/")
 	if webBase != "" {

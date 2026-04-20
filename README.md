@@ -132,6 +132,7 @@ http://<server-host>/webhooks/github
 http://<server-host>/webhooks/gitlab
 http://<server-host>/webhooks/bitbucket
 http://<server-host>/webhooks/slack
+http://<server-host>/webhooks/atlassian
 ```
 
 ### 8) Verify end-to-end quickly
@@ -182,6 +183,10 @@ wk.HandleRule("<rule-id>", func(ctx context.Context, evt *worker.Event) error {
     _, _ = worker.GitLabClient(evt)
   case "bitbucket":
     _, _ = worker.BitbucketClient(evt)
+  case "slack":
+    _, _ = worker.SlackClient(evt)
+  case "atlassian":
+    _, _ = worker.AtlassianClient(evt)
   }
 	return nil
 })
@@ -202,6 +207,8 @@ import {
   GitHubClient,
   GitLabClient,
   BitbucketClient,
+  SlackClient,
+  AtlassianClient,
 } from "@relaymesh/sdk";
 
 const worker = New(
@@ -222,6 +229,12 @@ worker.HandleRule("<rule-id>", async (_ctx, evt) => {
     case "bitbucket":
       BitbucketClient(evt);
       break;
+    case "slack":
+      SlackClient(evt);
+      break;
+    case "atlassian":
+      AtlassianClient(evt);
+      break;
   }
 });
 
@@ -240,6 +253,8 @@ from relaymesh import (
     GitHubClient,
     GitLabClient,
     BitbucketClient,
+    SlackClient,
+    AtlassianClient,
 )
 
 wk = New(
@@ -258,6 +273,8 @@ def handler(ctx, evt):
         BitbucketClient(evt)
     elif provider == "slack":
         SlackClient(evt)
+    elif provider == "atlassian":
+        AtlassianClient(evt)
 
 wk.HandleRule("<rule-id>", handler)
 
@@ -284,7 +301,7 @@ git push origin v0.0.20
 
 ## Docs index 📚
 
-- Getting started: `docs/getting-started-github.md`, `docs/getting-started-gitlab.md`, `docs/getting-started-bitbucket.md`, `docs/getting-started-slack.md`
+- Getting started: `docs/getting-started-github.md`, `docs/getting-started-gitlab.md`, `docs/getting-started-bitbucket.md`, `docs/getting-started-slack.md`, `docs/getting-started-atlassian.md`
 - CLI: `docs/cli.md`
 - Rules: `docs/rules.md`
 - Drivers: `docs/drivers.md`

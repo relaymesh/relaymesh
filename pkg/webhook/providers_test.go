@@ -51,4 +51,12 @@ func TestWebhookProviderMetadata(t *testing.T) {
 	if def := sl.Definition(); def.Type != providerspkg.TypeCollaboration || !def.HasCapability(providerspkg.CapabilityWebhookReceive) {
 		t.Fatalf("unexpected slack provider definition: %+v", def)
 	}
+
+	at := atlassianProvider{}
+	if at.Name() != "atlassian" {
+		t.Fatalf("unexpected atlassian provider name")
+	}
+	if def := at.Definition(); def.Type != providerspkg.TypeCollaboration || !def.HasCapability(providerspkg.CapabilityWebhookReceive) {
+		t.Fatalf("unexpected atlassian provider definition: %+v", def)
+	}
 }

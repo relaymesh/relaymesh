@@ -173,6 +173,44 @@ class SlackClient:
         return resp.json()
 
 
+class JiraClient:
+    def __init__(self, token: str, base_url: str) -> None:
+        self.token = token
+        self.base_url = base_url
+
+    def request(
+        self,
+        method: str,
+        path: str,
+        body: Optional[object] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> HTTPResponse:
+        merged = {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+        if headers:
+            merged.update(headers)
+        return _request(self.base_url, method, path, body, merged)
+
+    def request_json(
+        self,
+        method: str,
+        path: str,
+        body: Optional[object] = None,
+        headers: Optional[Dict[str, str]] = None,
+    ) -> object:
+        resp = self.request(method, path, body, headers)
+        if resp.status >= 300:
+            raise RuntimeError(f"jira request failed ({resp.status}): {resp.text()}")
+        return resp.json()
+
+
+class AtlassianClient(JiraClient):
+    pass
+
+
 def GitHubClientFromEvent(evt: object) -> Optional[GitHubClient]:
     client = getattr(evt, "client", None)
     if isinstance(client, GitHubClient):
@@ -201,6 +239,20 @@ def SlackClientFromEvent(evt: object) -> Optional[SlackClient]:
     return None
 
 
+def JiraClientFromEvent(evt: object) -> Optional[JiraClient]:
+    client = getattr(evt, "client", None)
+    if isinstance(client, JiraClient):
+        return client
+    return None
+
+
+def AtlassianClientFromEvent(evt: object) -> Optional[AtlassianClient]:
+    client = getattr(evt, "client", None)
+    if isinstance(client, JiraClient) or isinstance(client, AtlassianClient):
+        return client  # type: ignore[return-value]
+    return None
+
+
 def new_provider_client(provider: str, token: str, base_url: str) -> SCMClient:
     normalized = (provider or "").strip().lower()
     if normalized == "github":
@@ -211,6 +263,10 @@ def new_provider_client(provider: str, token: str, base_url: str) -> SCMClient:
         return BitbucketClient(token, _resolve_api_base(base_url, normalized))
     if normalized == "slack":
         return SlackClient(token, _resolve_api_base(base_url, normalized))
+    if normalized == "jira":
+        return JiraClient(token, _resolve_api_base(base_url, normalized))
+    if normalized == "atlassian":
+        return AtlassianClient(token, _resolve_api_base(base_url, normalized))
     raise ValueError(f"unsupported provider for scm client: {provider}")
 
 
@@ -230,6 +286,10 @@ def _resolve_api_base(base_url: str, provider: str) -> str:
         return "https://api.bitbucket.org/2.0"
     if provider == "slack":
         return "https://slack.com/api"
+    if provider == "jira":
+        return "https://api.atlassian.com"
+    if provider == "atlassian":
+        return "https://api.atlassian.com"
     return trimmed
 
 

@@ -13,6 +13,8 @@ func DefaultRegistry() *Registry {
 	_ = registry.Register(gitLabProvider{})
 	_ = registry.Register(bitbucketProvider{})
 	_ = registry.Register(slackProvider{})
+	_ = registry.Register(atlassianProvider{})
+	_ = registry.Register(jiraProvider{})
 	return registry
 }
 
@@ -23,6 +25,10 @@ type gitLabProvider struct{}
 type bitbucketProvider struct{}
 
 type slackProvider struct{}
+
+type atlassianProvider struct{}
+
+type jiraProvider struct{}
 
 func (gitHubProvider) Name() string {
 	return "github"
@@ -123,6 +129,62 @@ func (slackProvider) AuthorizeURL(r *http.Request, cfg auth.ProviderConfig, stat
 func (slackProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) http.Handler {
 	return &Handler{
 		Provider:              "slack",
+		Config:                cfg,
+		Providers:             opts.Providers,
+		Store:                 opts.Store,
+		NamespaceStore:        opts.NamespaceStore,
+		ProviderInstanceStore: opts.ProviderInstanceStore,
+		ProviderInstanceCache: opts.ProviderInstanceCache,
+		Logger:                opts.Logger,
+		RedirectBase:          opts.RedirectBase,
+		Endpoint:              opts.Endpoint,
+	}
+}
+
+func (atlassianProvider) Name() string {
+	return "atlassian"
+}
+
+func (atlassianProvider) CallbackPath() string {
+	return "/auth/atlassian/callback"
+}
+
+func (atlassianProvider) AuthorizeURL(r *http.Request, cfg auth.ProviderConfig, state, endpoint string) (string, error) {
+	redirectURL := callbackURL(r, "atlassian", endpoint)
+	return jiraAuthorizeURL(cfg, state, redirectURL)
+}
+
+func (atlassianProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) http.Handler {
+	return &Handler{
+		Provider:              "atlassian",
+		Config:                cfg,
+		Providers:             opts.Providers,
+		Store:                 opts.Store,
+		NamespaceStore:        opts.NamespaceStore,
+		ProviderInstanceStore: opts.ProviderInstanceStore,
+		ProviderInstanceCache: opts.ProviderInstanceCache,
+		Logger:                opts.Logger,
+		RedirectBase:          opts.RedirectBase,
+		Endpoint:              opts.Endpoint,
+	}
+}
+
+func (jiraProvider) Name() string {
+	return "jira"
+}
+
+func (jiraProvider) CallbackPath() string {
+	return "/auth/jira/callback"
+}
+
+func (jiraProvider) AuthorizeURL(r *http.Request, cfg auth.ProviderConfig, state, endpoint string) (string, error) {
+	redirectURL := callbackURL(r, "jira", endpoint)
+	return jiraAuthorizeURL(cfg, state, redirectURL)
+}
+
+func (jiraProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) http.Handler {
+	return &Handler{
+		Provider:              "atlassian",
 		Config:                cfg,
 		Providers:             opts.Providers,
 		Store:                 opts.Store,

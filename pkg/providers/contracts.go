@@ -85,6 +85,26 @@ func definitionByProvider(name string) (Definition, bool) {
 				CapabilityOAuthInstall,
 			},
 		}, true
+	case "jira":
+		return Definition{
+			Name: "atlassian",
+			Type: TypeCollaboration,
+			Capabilities: []Capability{
+				CapabilityWebhookReceive,
+				CapabilityOAuthInstall,
+				CapabilityAPIClient,
+			},
+		}, true
+	case "atlassian":
+		return Definition{
+			Name: "atlassian",
+			Type: TypeCollaboration,
+			Capabilities: []Capability{
+				CapabilityWebhookReceive,
+				CapabilityOAuthInstall,
+				CapabilityAPIClient,
+			},
+		}, true
 	default:
 		return Definition{}, false
 	}
