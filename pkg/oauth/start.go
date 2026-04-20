@@ -50,9 +50,6 @@ func (h *StartHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		state = randomState()
 	}
 	tenantID := strings.TrimSpace(r.URL.Query().Get("tenant_id"))
-	if tenantID == "" {
-		tenantID = "default"
-	}
 	instanceKey := strings.TrimSpace(r.URL.Query().Get("instance"))
 	logger.Printf("oauth start request provider=%s tenant=%s instance=%s state=%s", provider, tenantID, instanceKey, state)
 	ctx := storage.WithTenant(r.Context(), tenantID)
