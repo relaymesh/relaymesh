@@ -178,6 +178,34 @@ func bitbucketAuthorizeURL(cfg auth.ProviderConfig, state, redirectURL string) (
 	return u.String(), nil
 }
 
+func slackAuthorizeURL(cfg auth.ProviderConfig, state, redirectURL string) (string, error) {
+	if cfg.OAuth.ClientID == "" {
+		return "", fmt.Errorf("slack oauth_client_id is required")
+	}
+	baseURL := strings.TrimRight(cfg.API.BaseURL, "/")
+	if baseURL == "" {
+		baseURL = "https://slack.com/api"
+	}
+	authorizeBase := strings.TrimSuffix(baseURL, "/api")
+	u, err := url.Parse(authorizeBase + "/oauth/v2/authorize")
+	if err != nil {
+		return "", err
+	}
+	q := u.Query()
+	q.Set("client_id", cfg.OAuth.ClientID)
+	if redirectURL != "" {
+		q.Set("redirect_uri", redirectURL)
+	}
+	if len(cfg.OAuth.Scopes) > 0 {
+		q.Set("scope", strings.Join(cfg.OAuth.Scopes, ","))
+	}
+	if state != "" {
+		q.Set("state", state)
+	}
+	u.RawQuery = q.Encode()
+	return u.String(), nil
+}
+
 func githubWebBase(cfg auth.ProviderConfig) string {
 	webBase := strings.TrimRight(cfg.API.WebBaseURL, "/")
 	if webBase != "" {

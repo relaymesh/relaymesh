@@ -31,6 +31,9 @@ func TestLoadConfigDefaults(t *testing.T) {
 	if cfg.Providers.Bitbucket.Webhook.Path != "/webhooks/bitbucket" {
 		t.Fatalf("expected default bitbucket path, got %q", cfg.Providers.Bitbucket.Webhook.Path)
 	}
+	if cfg.Providers.Slack.Webhook.Path != "/webhooks/slack" {
+		t.Fatalf("expected default slack path, got %q", cfg.Providers.Slack.Webhook.Path)
+	}
 	if cfg.Relaybus.Driver != "" {
 		t.Fatalf("expected empty default relaybus driver, got %q", cfg.Relaybus.Driver)
 	}

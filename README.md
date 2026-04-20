@@ -131,6 +131,7 @@ relaymesh --endpoint http://localhost:8080 rules create \
 http://<server-host>/webhooks/github
 http://<server-host>/webhooks/gitlab
 http://<server-host>/webhooks/bitbucket
+http://<server-host>/webhooks/slack
 ```
 
 ### 8) Verify end-to-end quickly
@@ -281,7 +282,7 @@ git push origin v0.0.20
 
 ## Docs index 📚
 
-- Getting started: `docs/getting-started-github.md`, `docs/getting-started-gitlab.md`, `docs/getting-started-bitbucket.md`
+- Getting started: `docs/getting-started-github.md`, `docs/getting-started-gitlab.md`, `docs/getting-started-bitbucket.md`, `docs/getting-started-slack.md`
 - CLI: `docs/cli.md`
 - Rules: `docs/rules.md`
 - Drivers: `docs/drivers.md`

@@ -52,6 +52,8 @@ func providerFromPath(path string) string {
 		return "gitlab"
 	case strings.HasSuffix(path, "/auth/bitbucket/callback"):
 		return "bitbucket"
+	case strings.HasSuffix(path, "/auth/slack/callback"):
+		return "slack"
 	default:
 		return ""
 	}

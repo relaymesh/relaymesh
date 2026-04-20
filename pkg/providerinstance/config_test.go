@@ -123,6 +123,22 @@ func TestProviderInstanceHelpers(t *testing.T) {
 		}
 	})
 
+	t.Run("provider config parses numeric oauth client id", func(t *testing.T) {
+		record := storage.ProviderInstanceRecord{
+			ConfigJSON: `{"oauth":{"client_id":1897120182515.1096,"client_secret":"secret","scopes":["chat:write"]}}`,
+		}
+		cfg, err := ProviderConfigFromRecord(record)
+		if err != nil {
+			t.Fatalf("provider config from numeric client id: %v", err)
+		}
+		if cfg.OAuth.ClientID != "1897120182515.1096" {
+			t.Fatalf("unexpected oauth client id: %q", cfg.OAuth.ClientID)
+		}
+		if cfg.OAuth.ClientSecret != "secret" {
+			t.Fatalf("unexpected oauth client secret: %q", cfg.OAuth.ClientSecret)
+		}
+	})
+
 	t.Run("hasProviderConfig coverage", func(t *testing.T) {
 		if hasProviderConfig(auth.ProviderConfig{}) {
 			t.Fatalf("expected empty provider config to be false")

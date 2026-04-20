@@ -43,4 +43,12 @@ func TestWebhookProviderMetadata(t *testing.T) {
 	if fields := bb.WebhookLogFields(auth.ProviderConfig{}); fields != "" {
 		t.Fatalf("expected empty bitbucket log fields")
 	}
+
+	sl := slackProvider{}
+	if sl.Name() != "slack" {
+		t.Fatalf("unexpected slack provider name")
+	}
+	if def := sl.Definition(); def.Type != providerspkg.TypeCollaboration || !def.HasCapability(providerspkg.CapabilityWebhookReceive) {
+		t.Fatalf("unexpected slack provider definition: %+v", def)
+	}
 }

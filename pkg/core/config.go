@@ -226,6 +226,9 @@ func applyDefaults(cfg *AppConfig) {
 	if cfg.Providers.Bitbucket.Webhook.Path == "" {
 		cfg.Providers.Bitbucket.Webhook.Path = "/webhooks/bitbucket"
 	}
+	if cfg.Providers.Slack.Webhook.Path == "" {
+		cfg.Providers.Slack.Webhook.Path = "/webhooks/slack"
+	}
 	if cfg.Relaybus.PublishRetry.Attempts == 0 {
 		cfg.Relaybus.PublishRetry.Attempts = 3
 	}

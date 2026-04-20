@@ -8,6 +8,8 @@ func providerConfigFromAuthConfig(cfg auth.Config, provider string) auth.Provide
 		return cfg.GitLab
 	case auth.ProviderBitbucket:
 		return cfg.Bitbucket
+	case auth.ProviderSlack:
+		return cfg.Slack
 	default:
 		return cfg.GitHub
 	}

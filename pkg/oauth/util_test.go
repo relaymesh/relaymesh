@@ -34,6 +34,9 @@ func TestProviderFromPath(t *testing.T) {
 	if provider := providerFromPath("/auth/bitbucket/callback"); provider != "bitbucket" {
 		t.Fatalf("expected bitbucket, got %q", provider)
 	}
+	if provider := providerFromPath("/auth/slack/callback"); provider != "slack" {
+		t.Fatalf("expected slack, got %q", provider)
+	}
 	if provider := providerFromPath("/auth/unknown/callback"); provider != "" {
 		t.Fatalf("expected empty provider, got %q", provider)
 	}

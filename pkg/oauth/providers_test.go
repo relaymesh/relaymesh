@@ -35,4 +35,12 @@ func TestOAuthProviderMetadata(t *testing.T) {
 	if url, err := bb.AuthorizeURL(req, auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id"}}, "state", ""); err != nil || url == "" {
 		t.Fatalf("expected bitbucket authorize url")
 	}
+
+	sl := slackProvider{}
+	if sl.Name() != "slack" || sl.CallbackPath() != "/auth/slack/callback" {
+		t.Fatalf("unexpected slack provider metadata")
+	}
+	if url, err := sl.AuthorizeURL(req, auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id"}}, "state", ""); err != nil || url == "" {
+		t.Fatalf("expected slack authorize url")
+	}
 }

@@ -44,6 +44,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			config = h.Providers.GitLab
 		case "bitbucket":
 			config = h.Providers.Bitbucket
+		case "slack":
+			config = h.Providers.Slack
 		}
 	}
 
@@ -54,6 +56,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.handleBitbucket(w, r, logger, config)
 	case "github":
 		h.handleGitHubApp(w, r, logger, config)
+	case "slack":
+		h.handleSlack(w, r, logger, config)
 	default:
 		http.Error(w, "unsupported provider", http.StatusBadRequest)
 	}

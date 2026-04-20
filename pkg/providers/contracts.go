@@ -76,6 +76,15 @@ func definitionByProvider(name string) (Definition, bool) {
 				CapabilityAPIClient,
 			},
 		}, true
+	case "slack":
+		return Definition{
+			Name: "slack",
+			Type: TypeCollaboration,
+			Capabilities: []Capability{
+				CapabilityWebhookReceive,
+				CapabilityOAuthInstall,
+			},
+		}, true
 	default:
 		return Definition{}, false
 	}

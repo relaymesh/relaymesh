@@ -14,12 +14,15 @@ type gitLabProvider struct{}
 
 type bitbucketProvider struct{}
 
+type slackProvider struct{}
+
 // DefaultRegistry registers the built-in webhook providers.
 func DefaultRegistry() *Registry {
 	registry := NewRegistry()
 	_ = registry.Register(gitHubProvider{})
 	_ = registry.Register(gitLabProvider{})
 	_ = registry.Register(bitbucketProvider{})
+	_ = registry.Register(slackProvider{})
 	return registry
 }
 
@@ -125,6 +128,41 @@ func (bitbucketProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions
 }
 
 func (bitbucketProvider) WebhookLogFields(cfg auth.ProviderConfig) string {
+	_ = cfg
+	return ""
+}
+
+func (slackProvider) Name() string {
+	return "slack"
+}
+
+func (slackProvider) Definition() providerspkg.Definition {
+	def, _ := providerspkg.DefinitionFor("slack")
+	return def
+}
+
+func (slackProvider) WebhookPath(cfg auth.ProviderConfig) string {
+	return cfg.Webhook.Path
+}
+
+func (slackProvider) NewHandler(cfg auth.ProviderConfig, opts HandlerOptions) (http.Handler, error) {
+	return NewSlackHandler(
+		cfg.Webhook.Secret,
+		opts.Rules,
+		opts.Publisher,
+		opts.Logger,
+		opts.MaxBodyBytes,
+		opts.DebugEvents,
+		opts.InstallStore,
+		opts.EventLogStore,
+		opts.RuleStore,
+		opts.DriverStore,
+		opts.RulesStrict,
+		opts.DynamicDriverCache,
+	)
+}
+
+func (slackProvider) WebhookLogFields(cfg auth.ProviderConfig) string {
 	_ = cfg
 	return ""
 }

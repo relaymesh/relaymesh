@@ -43,6 +43,13 @@ func TestStartURLHelpers(t *testing.T) {
 		t.Fatalf("expected bitbucket authorize url")
 	}
 
+	if url, err := slackAuthorizeURL(auth.ProviderConfig{}, "state", "https://callback"); err == nil || url != "" {
+		t.Fatalf("expected slack authorize error")
+	}
+	if url, err := slackAuthorizeURL(auth.ProviderConfig{OAuth: auth.OAuthConfig{ClientID: "id", Scopes: []string{"chat:write", "channels:read"}}}, "state", "https://callback"); err != nil || url == "" {
+		t.Fatalf("expected slack authorize url")
+	}
+
 	if got, err := addQueryParam("https://example.com/x", "state", ""); err != nil || got != "https://example.com/x" {
 		t.Fatalf("unexpected addQueryParam empty value result: %q err=%v", got, err)
 	}

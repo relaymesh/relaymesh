@@ -150,10 +150,10 @@ type appConfigWire struct {
 }
 
 type oauthConfigWire struct {
-	ClientID        *string         `json:"client_id"`
-	ClientIDAlt     *string         `json:"ClientID"`
-	ClientSecret    *string         `json:"client_secret"`
-	ClientSecretAlt *string         `json:"ClientSecret"`
+	ClientID        json.RawMessage `json:"client_id"`
+	ClientIDAlt     json.RawMessage `json:"ClientID"`
+	ClientSecret    json.RawMessage `json:"client_secret"`
+	ClientSecretAlt json.RawMessage `json:"ClientSecret"`
 	Scopes          json.RawMessage `json:"scopes"`
 	ScopesAlt       json.RawMessage `json:"Scopes"`
 }
@@ -245,15 +245,15 @@ func unmarshalProviderConfig(raw string, target *auth.ProviderConfig) error {
 		if err := json.Unmarshal(oauthRaw, &oauth); err != nil {
 			return err
 		}
-		if oauth.ClientID != nil {
-			target.OAuth.ClientID = *oauth.ClientID
-		} else if oauth.ClientIDAlt != nil {
-			target.OAuth.ClientID = *oauth.ClientIDAlt
+		if value, ok := parseStringLikeJSON(oauth.ClientID); ok {
+			target.OAuth.ClientID = value
+		} else if value, ok := parseStringLikeJSON(oauth.ClientIDAlt); ok {
+			target.OAuth.ClientID = value
 		}
-		if oauth.ClientSecret != nil {
-			target.OAuth.ClientSecret = *oauth.ClientSecret
-		} else if oauth.ClientSecretAlt != nil {
-			target.OAuth.ClientSecret = *oauth.ClientSecretAlt
+		if value, ok := parseStringLikeJSON(oauth.ClientSecret); ok {
+			target.OAuth.ClientSecret = value
+		} else if value, ok := parseStringLikeJSON(oauth.ClientSecretAlt); ok {
+			target.OAuth.ClientSecret = value
 		}
 		scopesRaw := oauth.Scopes
 		if len(scopesRaw) == 0 {
@@ -294,6 +294,27 @@ func unmarshalProviderConfig(raw string, target *auth.ProviderConfig) error {
 	}
 
 	return nil
+}
+
+func parseStringLikeJSON(raw json.RawMessage) (string, bool) {
+	if len(raw) == 0 {
+		return "", false
+	}
+	trimmed := strings.TrimSpace(string(raw))
+	if trimmed == "" || trimmed == "null" {
+		return "", false
+	}
+	if strings.HasPrefix(trimmed, "\"") {
+		var value string
+		if err := json.Unmarshal(raw, &value); err != nil {
+			return "", false
+		}
+		return value, true
+	}
+	if strings.HasPrefix(trimmed, "{") || strings.HasPrefix(trimmed, "[") {
+		return "", false
+	}
+	return trimmed, true
 }
 
 func splitScopes(value string) []string {

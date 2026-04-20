@@ -50,6 +50,7 @@ func TestProviderHelpers(t *testing.T) {
 			GitHub:    ProviderConfig{Key: "gh"},
 			GitLab:    ProviderConfig{Key: "gl"},
 			Bitbucket: ProviderConfig{Key: "bb"},
+			Slack:     ProviderConfig{Key: "sl"},
 			Extra: map[string]ProviderConfig{
 				"custom-provider": {Key: "custom"},
 			},
@@ -63,6 +64,9 @@ func TestProviderHelpers(t *testing.T) {
 		}
 		if got, ok := cfg.ProviderConfigFor("bitbucket"); !ok || got.Key != "bb" {
 			t.Fatalf("unexpected bitbucket config: %+v ok=%v", got, ok)
+		}
+		if got, ok := cfg.ProviderConfigFor("slack"); !ok || got.Key != "sl" {
+			t.Fatalf("unexpected slack config: %+v ok=%v", got, ok)
 		}
 		if got, ok := cfg.ProviderConfigFor("custom_provider"); !ok || got.Key != "custom" {
 			t.Fatalf("unexpected extra config: %+v ok=%v", got, ok)

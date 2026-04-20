@@ -5,6 +5,7 @@ type Config struct {
 	GitHub    ProviderConfig            `yaml:"github"`
 	GitLab    ProviderConfig            `yaml:"gitlab"`
 	Bitbucket ProviderConfig            `yaml:"bitbucket"`
+	Slack     ProviderConfig            `yaml:"slack"`
 	Extra     map[string]ProviderConfig `yaml:"extra"`
 }
 
@@ -18,6 +19,8 @@ func (c Config) ProviderConfigFor(provider string) (ProviderConfig, bool) {
 		return c.GitLab, true
 	case ProviderBitbucket:
 		return c.Bitbucket, true
+	case ProviderSlack:
+		return c.Slack, true
 	default:
 		if c.Extra == nil {
 			return ProviderConfig{}, false

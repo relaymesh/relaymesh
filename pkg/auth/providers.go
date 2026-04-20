@@ -6,6 +6,7 @@ const (
 	ProviderGitHub    = "github"
 	ProviderGitLab    = "gitlab"
 	ProviderBitbucket = "bitbucket"
+	ProviderSlack     = "slack"
 )
 
 // NormalizeProviderName normalizes provider identifiers for comparisons.

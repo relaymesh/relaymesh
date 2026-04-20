@@ -68,4 +68,7 @@ func TestWebhookDefaultRegistry(t *testing.T) {
 	if _, ok := r.Provider("bitbucket"); !ok {
 		t.Fatalf("expected bitbucket provider")
 	}
+	if _, ok := r.Provider("slack"); !ok {
+		t.Fatalf("expected slack provider")
+	}
 }
